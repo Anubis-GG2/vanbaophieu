@@ -1,0 +1,33 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+group 'me.math3w'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven { url = uri('https://hub.spigotmc.org/nexus/content/repositories/snapshots') }
+    maven { url = uri('https://oss.sonatype.org/content/groups/public/') }
+    maven { url = 'https://jitpack.io' }
+    maven { url = 'https://repo.codemc.org/repository/maven-public/' }
+}
+
+dependencies {
+    compileOnly 'org.spigotmc:spigot-api:1.21.1-R0.1-SNAPSHOT' // Đảm bảo dùng 1.21
+    implementation 'com.github.ZorTik:ContainrGUI:0.7-pre2'
+
+    // [FIX] Cập nhật SignGUI từ v1.9.3 lên 2.4.2 (Hỗ trợ 1.21)
+    // Lưu ý: Group ID của bản mới có thể đã thay đổi, nhưng JitPack vẫn hỗ trợ github path cũ
+    implementation 'de.rapha149.signgui:signgui:2.5.4'
+
+    implementation 'de.tr7zw:item-nbt-api:2.14.1'
+    implementation("com.github.cryptomorin:XSeries:9.5.0")
+    compileOnly "com.github.MilkBowl:VaultAPI:1.7"
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}

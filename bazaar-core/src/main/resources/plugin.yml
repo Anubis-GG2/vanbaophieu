@@ -1,0 +1,28 @@
+name: Bazaar
+main: me.math3w.bazaar.BazaarPlugin
+version: 1.0
+author: _Math3w_
+api-version: 1.21
+depend:
+  - Vault
+commands:
+  bazaar:
+    description: Opens bazaar menu
+    permission: bazaar.open
+  bazaaredit:
+    description: Opens edit menu
+    permission: bazaar.edit
+  # --- THÊM 2 LỆNH MỚI ---
+  category:
+    description: Manage bazaar categories
+    permission: bazaar.admin
+  stock:
+    description: Manage stocks
+    permission: bazaar.admin
+permissions:
+  bazaar.open:
+    default: true
+  bazaar.edit:
+    default: op
+  bazaar.admin:
+    default: op

@@ -45,12 +45,9 @@ public class BazaarPlugin extends JavaPlugin implements BazaarAPI {
     private ClickActionManager clickActionManager;
     private ItemPlaceholders itemPlaceholders;
     private MenuHistory menuHistory;
-
-    // Managers mới
     private PortfolioManager portfolioManager;
     private EditManager editManager;
     private MessageInputManager messageInputManager;
-
     private MarketTicker marketTicker;
     private LiquidityService liquidityService;
 
@@ -88,27 +85,19 @@ public class BazaarPlugin extends JavaPlugin implements BazaarAPI {
         menuConfig = new DefaultMenuConfig(this);
         databaseConfig = new DatabaseConfig(this);
 
-        // Đăng ký lệnh cũ
-        getCommand("bazaar").setExecutor(new BazaarCommand(this));
-        getCommand("bazaaredit").setExecutor(new EditCommand(this));
-
-        // [NEW] Đăng ký lệnh Stock & Category
         getCommand("category").setExecutor(new CategoryCommand(this));
         getCommand("stock").setExecutor(new StockCommand(this));
+        getCommand("vanbaophieu").setExecutor(new BazaarCommand(this));
+        getCommand("vanbaophieuedit").setExecutor(new EditCommand(this));
 
         bazaar = new BazaarImpl(this);
-
-        // Khởi tạo hệ thống tài chính
         liquidityService = new LiquidityService(this);
         portfolioManager = new PortfolioManager(this);
-
         marketTicker = new MarketTicker(this);
         marketTicker.start();
-
         clickActionManager = new DefaultClickActionManager(this);
         itemPlaceholders = new DefaultItemPlaceholders(this);
         menuHistory = new DefaultMenuHistory(this);
-
         editManager = new DefaultEditManager(this);
         messageInputManager = new MessageInputManager(this);
 
@@ -124,25 +113,19 @@ public class BazaarPlugin extends JavaPlugin implements BazaarAPI {
 
     }
 
-    // --- Getters ---
-
     public MarketTicker getMarketTicker() {
         return marketTicker;
     }
-
-    // [FIX] Sửa tên method từ getLiquidityService trong log lỗi thành đúng tên biến
     public LiquidityService getLiquidityService() {
         return liquidityService;
     }
-
-    // [FIX] Thêm getter cho PortfolioManager
     public PortfolioManager getPortfolioManager() {
         return portfolioManager;
     }
 
     @Override
     public OrderManager getOrderManager() {
-        throw new UnsupportedOperationException("OrderManager has been replaced by PortfolioManager");
+        throw new UnsupportedOperationException("PortfolioManager");
     }
 
     @Override

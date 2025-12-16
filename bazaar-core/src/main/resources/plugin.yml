@@ -6,13 +6,12 @@ api-version: 1.21
 depend:
   - Vault
 commands:
-  bazaar:
+  vanbaophieu:
     description: Opens bazaar menu
     permission: bazaar.open
-  bazaaredit:
+  vanbaophieuedit:
     description: Opens edit menu
     permission: bazaar.edit
-  # --- THÊM 2 LỆNH MỚI ---
   category:
     description: Manage bazaar categories
     permission: bazaar.admin

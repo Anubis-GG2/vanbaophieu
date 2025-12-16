@@ -155,7 +155,6 @@ public class EditMenuBuilder {
     }
 
     public EditMenuBuilder addBackElementElement(int slot, MenuHistory menuHistory) {
-        //FIXME Because menu history stores GUI the old menu is loaded even if something change
         return addElement(slot, Component.element()
                 .item(ItemBuilder.newBuilder(Material.ARROW)
                         .withName(ChatColor.GREEN + "Go Back")

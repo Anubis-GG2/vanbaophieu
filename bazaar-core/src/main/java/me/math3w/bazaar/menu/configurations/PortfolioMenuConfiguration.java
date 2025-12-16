@@ -14,7 +14,7 @@ import me.zort.containr.internal.util.ItemBuilder;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
-import org.bukkit.configuration.serialization.SerializableAs; // [NEW]
+import org.bukkit.configuration.serialization.SerializableAs;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-// [FIX] Thêm Annotation này để fix lỗi "Class not exist" khi reload
 @SerializableAs("PortfolioMenuConfiguration")
 public class PortfolioMenuConfiguration extends OrdersMenuConfiguration implements ConfigurationSerializable {
 
@@ -38,7 +37,7 @@ public class PortfolioMenuConfiguration extends OrdersMenuConfiguration implemen
 
         items.add(new DefaultConfigurableMenuItem(50,
                 ItemBuilder.newBuilder(Material.BOOK).withName(ChatColor.YELLOW + "Xem Lệnh Đang Xử Lý").build(),
-                "manage-orders"));
+                "view-pending"));
 
         return new PortfolioMenuConfiguration("Danh Mục Đầu Tư", 6, items);
     }
@@ -47,7 +46,6 @@ public class PortfolioMenuConfiguration extends OrdersMenuConfiguration implemen
         return new PortfolioMenuConfiguration((String) args.get("name"), (Integer) args.get("rows"), (List<DefaultConfigurableMenuItem>) args.get("items"));
     }
 
-    // Hàm getMenu giữ nguyên như phiên bản trước (đã fix)
     public GUI getMenu(BazaarAPI bazaarApi, boolean edit) {
         return getMenuBuilder().prepare((gui, player) -> {
             super.loadItems(gui, bazaarApi, player, null, edit);
@@ -56,12 +54,18 @@ public class PortfolioMenuConfiguration extends OrdersMenuConfiguration implemen
             PagedContainer container = Component.pagedContainer().size(6, 4).init(c -> {
                 List<PortfolioTransaction> txs = plugin.getPortfolioManager().getTransactions(player.getUniqueId());
 
+                // Map lưu tổng số lượng cổ phiếu
                 Map<String, Integer> totalAmount = new HashMap<>();
+                // Map lưu số lượng đang bị khóa (chưa T+1)
                 Map<String, Integer> lockedAmount = new HashMap<>();
+                // Map lưu tổng chi phí vốn (Total Cost) để tính Lãi/Lỗ
+                Map<String, Double> totalCostMap = new HashMap<>();
 
                 for (PortfolioTransaction tx : txs) {
                     if (tx.getType() == PortfolioTransaction.TransactionType.BUY_HOLDING) {
                         totalAmount.merge(tx.getProductId(), tx.getAmount(), Integer::sum);
+                        totalCostMap.merge(tx.getProductId(), tx.getValue(), Double::sum);
+
                         if (!tx.isSettled()) {
                             lockedAmount.merge(tx.getProductId(), tx.getAmount(), Integer::sum);
                         }
@@ -80,16 +84,36 @@ public class PortfolioMenuConfiguration extends OrdersMenuConfiguration implemen
                     int total = totalAmount.get(productId);
                     int locked = lockedAmount.getOrDefault(productId, 0);
                     int available = total - locked;
+
                     double currentPrice = plugin.getMarketTicker().getCurrentPrice(product);
+                    double totalCurrentValue = currentPrice * total;
+
+                    // Tính toán Lãi/Lỗ
+                    double totalCost = totalCostMap.getOrDefault(productId, 0.0);
+                    // Giá mua trung bình
+                    double avgBuyPrice = (total > 0) ? (totalCost / total) : 0;
+
+                    double profitValue = totalCurrentValue - totalCost;
+                    double profitPercent = (totalCost > 0) ? ((profitValue / totalCost) * 100.0) : 0;
+
+                    String profitString;
+                    if (profitValue >= 0) {
+                        profitString = "§aLãi: +" + Utils.getTextPrice(profitValue) + " (" + String.format("%.2f", profitPercent) + "%)";
+                    } else {
+                        profitString = "§cLỗ: " + Utils.getTextPrice(profitValue) + " (" + String.format("%.2f", profitPercent) + "%)";
+                    }
 
                     ItemStack icon = ItemBuilder.newBuilder(product.getItem())
                             .withName(ChatColor.GREEN + product.getName())
                             .appendLore("§7--------------------")
                             .appendLore("§fTổng sở hữu: §a" + total)
                             .appendLore("§fKhả dụng: §e" + available)
-                            .appendLore("§fĐang khóa: §c" + locked)
+                            .appendLore("§fĐang khóa (T+1): §c" + locked)
                             .appendLore("")
-                            .appendLore("§7Giá trị: §6" + Utils.getTextPrice(currentPrice * total))
+                            .appendLore("§7Giá thị trường: §6" + Utils.getTextPrice(currentPrice))
+                            .appendLore("§7Giá vốn TB: §7" + Utils.getTextPrice(avgBuyPrice))
+                            .appendLore("")
+                            .appendLore(profitString)
                             .appendLore("§7--------------------")
                             .appendLore(edit ? "" : "§eBấm để xem chi tiết lệnh")
                             .build();

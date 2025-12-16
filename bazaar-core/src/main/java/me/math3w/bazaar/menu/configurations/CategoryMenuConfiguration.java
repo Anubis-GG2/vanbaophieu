@@ -62,7 +62,6 @@ public class CategoryMenuConfiguration extends MenuConfiguration {
             Bazaar bazaar = selectedCategory.getBazaar();
             EditManager editManager = bazaarApi.getEditManager();
 
-            // Cột bên trái: Danh sách Main Categories
             gui.setContainer(0, Component.staticContainer().size(1, 5).init(container -> {
                 for (Category category : bazaar.getCategories()) {
                     ItemStack categoryIcon = category.equals(selectedCategory) ? Utils.getGlowedItem(category.getIcon()) : category.getIcon();
@@ -77,22 +76,17 @@ public class CategoryMenuConfiguration extends MenuConfiguration {
                 }
             }).build());
 
-            // Vùng chính: Hiển thị trực tiếp STOCKS (Bỏ qua Sub-Category)
             PagedContainer productsContainer = Component.pagedContainer().size(6, 4).init(container -> {
 
-                // 1. Duyệt qua tất cả Sub-Categories để lấy Stock
                 for (ProductCategory productCategory : selectedCategory.getProductCategories()) {
                     for (Product product : productCategory.getProducts()) {
-                        // Hiển thị Stock
                         container.appendElement(Component.element()
                                 .click(editManager.createEditableItemClickAction(
                                         clickInfo -> bazaar.openProduct(player, product),
-                                        clickInfo -> bazaar.openProductEdit(player, product), // Mở edit product
+                                        clickInfo -> bazaar.openProductEdit(player, product),
                                         clickInfo -> editManager.openProductEdit(player, product),
                                         clickInfo -> {
-                                            // Logic xóa: Xóa khỏi sub-category hiện tại
                                             productCategory.removeProduct(product);
-                                            // Refresh menu
                                             getMenu(selectedCategory, true).open(player);
                                         },
                                         clickInfo -> getMenu(selectedCategory, true).open(player),
@@ -102,20 +96,16 @@ public class CategoryMenuConfiguration extends MenuConfiguration {
                     }
                 }
 
-                // 2. Nút Add Product (Chỉ hiện khi Edit)
                 if (edit) {
                     container.appendElement(Component.element((MenuUtils.getPlusSkull(ChatColor.GREEN + "Thêm Cổ Phiếu")))
                             .click(clickInfo -> {
                                 BazaarConfig bazaarConfig = ((BazaarPlugin) bazaar.getBazaarApi()).getBazaarConfig();
-                                // Tạo sản phẩm mới mặc định
                                 ProductConfiguration productConfiguration = bazaarConfig.getProductConfiguration(
                                         ItemBuilder.newBuilder(Material.PAPER).withName(ChatColor.RED + "Cổ Phiếu mới").build(),
                                         ChatColor.RED + "Cổ Phiếu mới"
                                 );
 
-                                // Tự động thêm vào Sub-Category đầu tiên (hoặc tạo mới nếu chưa có)
                                 if (selectedCategory.getProductCategories().isEmpty()) {
-                                    // Tạo sub-cat ẩn "General"
                                     ProductCategoryImpl newSubCat = new ProductCategoryImpl(selectedCategory,
                                             bazaarConfig.getProductCategoryConfiguration(new ItemStack(Material.CHEST), "General", new ProductConfiguration[]{}, ChatColor.WHITE));
                                     selectedCategory.addProductCategory(newSubCat);
@@ -124,8 +114,6 @@ public class CategoryMenuConfiguration extends MenuConfiguration {
                                 ProductCategory targetSubCat = selectedCategory.getProductCategories().get(0);
                                 ProductImpl product = new ProductImpl(targetSubCat, productConfiguration);
                                 targetSubCat.addProduct(product);
-
-                                // Mở menu edit ngay cho sản phẩm mới
                                 editManager.openProductEdit(player, product);
                             }).build());
                 }

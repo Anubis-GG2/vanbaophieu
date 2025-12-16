@@ -20,13 +20,11 @@ public class ProductConfiguration implements ConfigurationSerializable {
         this.price = price;
     }
 
-    // Constructor cũ để tương thích (mặc định giá 10.0)
     public ProductConfiguration(ItemStack item, ItemStack icon, String name) {
         this(item, icon, name, 10.0);
     }
 
     public static ProductConfiguration deserialize(Map<String, Object> args) {
-        // [NEW] Đọc giá từ file, nếu không có thì mặc định 10.0
         double price = args.containsKey("price") ? ((Number) args.get("price")).doubleValue() : 10.0;
 
         return new ProductConfiguration(

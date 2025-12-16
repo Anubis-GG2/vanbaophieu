@@ -57,15 +57,12 @@ public class ProductCategoryMenuConfiguration extends MenuConfiguration {
         int rows = 4;
         List<Integer> productSlots = new ArrayList<>();
 
-        // Logic cũ cho các item mặc định
         switch (products) {
             case 1: productSlots = Collections.singletonList(13); break;
             case 2: productSlots = Arrays.asList(12, 14); break;
             case 3: productSlots = Arrays.asList(11, 13, 15); break;
             case 4: productSlots = Arrays.asList(10, 12, 14, 16); break;
             default:
-                // Nếu > 4 item, fill vào các slot trống chuẩn
-                // (Sẽ được xử lý bởi hàm addSlotForNewProduct nếu cần thêm)
                 break;
         }
 
@@ -74,9 +71,7 @@ public class ProductCategoryMenuConfiguration extends MenuConfiguration {
         return new ProductCategoryMenuConfiguration(name, rows, items, productSlots);
     }
 
-    // [NEW] Hàm tự động tìm slot trống để thêm sản phẩm mới
     public void addSlotForNewProduct() {
-        // Danh sách các slot hợp lệ (trừ khung kính và nút chức năng)
         int[] possibleSlots = {
                 10, 11, 12, 13, 14, 15, 16,
                 19, 20, 21, 22, 23, 24, 25,
@@ -85,7 +80,6 @@ public class ProductCategoryMenuConfiguration extends MenuConfiguration {
         };
 
         for (int slot : possibleSlots) {
-            // Nếu slot này chưa được dùng, thêm vào và dừng lại
             if (!productSlots.contains(slot)) {
                 productSlots.add(slot);
                 return;
@@ -93,7 +87,6 @@ public class ProductCategoryMenuConfiguration extends MenuConfiguration {
         }
     }
 
-    // [NEW] Getter để hỗ trợ remove logic
     public List<Integer> getProductSlots() {
         return productSlots;
     }
@@ -119,7 +112,7 @@ public class ProductCategoryMenuConfiguration extends MenuConfiguration {
         return getMenuBuilder().prepare((gui, player) -> {
             super.loadItems(gui, bazaarApi, player, selectedCategory, edit);
 
-            // Logic Edit Mode (Middle Click)
+
             if (edit) {
                 for (Map.Entry<Integer, Element> slotElementEntry : gui.content(null).entrySet()) {
                     int slot = slotElementEntry.getKey();
@@ -149,9 +142,9 @@ public class ProductCategoryMenuConfiguration extends MenuConfiguration {
 
             List<Product> products = selectedCategory.getProducts();
 
-            // Render Products
+
             for (int i = 0; i < productSlots.size(); i++) {
-                if (i >= products.size()) break; // Tránh lỗi IndexOutOfBound nếu slot nhiều hơn sản phẩm
+                if (i >= products.size()) break;
 
                 int slot = productSlots.get(i);
                 Product product = products.get(i);

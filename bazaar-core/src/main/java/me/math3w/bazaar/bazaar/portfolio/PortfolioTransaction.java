@@ -3,14 +3,15 @@ package me.math3w.bazaar.bazaar.portfolio;
 import java.util.UUID;
 
 public class PortfolioTransaction {
-    private final UUID id; // [NEW] ID định danh cho Database
+    private final UUID id;
     private final String productId;
     private int amount;
     private final double value;
-    private final long timestamp;
+    private long timestamp;
     private final TransactionType type;
+    private double settledValue;
+    private double claimedValue;
 
-    // 24h Cooldown (86400000 ms)
     public static final long COOLDOWN_MS = 86400000L;
 
     public enum TransactionType {
@@ -18,19 +19,19 @@ public class PortfolioTransaction {
         SELL_PENDING
     }
 
-    // Constructor cho code Java tạo mới
     public PortfolioTransaction(String productId, int amount, double value, TransactionType type) {
-        this(UUID.randomUUID(), productId, amount, value, type, System.currentTimeMillis());
+        this(UUID.randomUUID(), productId, amount, value, type, System.currentTimeMillis(), 0.0, 0.0);
     }
 
-    // Constructor cho Database load lên (có sẵn ID và Time)
-    public PortfolioTransaction(UUID id, String productId, int amount, double value, TransactionType type, long timestamp) {
+    public PortfolioTransaction(UUID id, String productId, int amount, double value, TransactionType type, long timestamp, double settledValue, double claimedValue) {
         this.id = id;
         this.productId = productId;
         this.amount = amount;
         this.value = value;
         this.type = type;
         this.timestamp = timestamp;
+        this.settledValue = settledValue;
+        this.claimedValue = claimedValue;
     }
 
     public UUID getId() { return id; }
@@ -38,11 +39,27 @@ public class PortfolioTransaction {
     public int getAmount() { return amount; }
     public void setAmount(int amount) { this.amount = amount; }
     public double getValue() { return value; }
+
     public long getTimestamp() { return timestamp; }
+    public void setTimestamp(long timestamp) { this.timestamp = timestamp; }
+
     public TransactionType getType() { return type; }
 
+    public double getSettledValue() { return settledValue; }
+    public void setSettledValue(double settledValue) { this.settledValue = settledValue; }
+
+    public double getClaimedValue() { return claimedValue; }
+    public void setClaimedValue(double claimedValue) { this.claimedValue = claimedValue; }
+
     public boolean isSettled() {
-        return System.currentTimeMillis() - timestamp >= COOLDOWN_MS;
+        if (type == TransactionType.BUY_HOLDING) {
+            return getTimeRemaining() <= 0;
+        }
+        return settledValue >= value;
+    }
+
+    public double getRemainingValueToSettle() {
+        return value - settledValue;
     }
 
     public long getTimeRemaining() {

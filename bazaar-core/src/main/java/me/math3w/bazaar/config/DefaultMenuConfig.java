@@ -18,7 +18,6 @@ public class DefaultMenuConfig extends CustomConfig implements MenuConfig {
         super(plugin, "menu");
     }
 
-    // ... (Giữ nguyên các hàm formatStringList, formatString) ...
     public static List<String> formatStringList(List<String> strings, Placeholder... placeholders) {
         for (Placeholder placeholder : placeholders) { strings.replaceAll(placeholder::replace); }
         strings.replaceAll(Utils::colorize);
@@ -32,26 +31,20 @@ public class DefaultMenuConfig extends CustomConfig implements MenuConfig {
     @Override
     protected void addDefaults() {
         addDefault("productcategory-lore", Collections.singletonList("&8%products% products"));
-
-        // [FIX] Cập nhật placeholder cho khớp với code: %buy-price% và %sell-price%
         addDefault("product-lore", Arrays.asList(
-                "&7Giá Mua: &6%buy-price% &6coins",
-                "&7Giá Bán: &6%sell-price% &6coins"
+                "&7Giá Mua: &6%buy-price% &6linh thạch",
+                "&7Giá Bán: &6%sell-price% &6linh thạch"
         ));
 
         addDefault("product", Collections.singletonList("&8%product%"));
-        addDefault("sell-inventory", Arrays.asList("%items%", "", "&7Bạn nhận: &6%earned-coins% &6coins", "", "&eBấm để Bán!"));
+        addDefault("sell-inventory", Arrays.asList("%items%", "", "&7Bạn nhận: &6%earned-coins% &6linh thạch", "", "&eBấm để Bán!"));
         addDefault("sell-inventory-none", Arrays.asList("&cBạn không có gì để", "&cbán!"));
         addDefault("item", Collections.singletonList(" &a%item-amount%&7x &f%item-name% &7với &6%item-coins% linh thạch"));
-
-        // [FIX] Cập nhật Buy Instantly
         addDefault("buy-instantly", Arrays.asList(
                 "&7Price per unit: &6%buy-price% &6coins",
                 "&7Approx Stack price: &6%stack-buy-price% &6coins"
         ));
         addDefault("buy-instantly-amount-sign", Arrays.asList("", "^^^^^^^^^^^^^^^", "Nhập số lượng", "để mua"));
-
-        // [FIX] Cập nhật Sell Instantly
         addDefault("sell-instantly", Arrays.asList(
                 "&7Inventory: &a%item-amount% items",
                 "",
@@ -59,8 +52,6 @@ public class DefaultMenuConfig extends CustomConfig implements MenuConfig {
                 "&7Total: &6%coins% &6coins"
         ));
         addDefault("sell-instantly-amount-sign", Arrays.asList("", "^^^^^^^^^^^^^^^", "Nhập số lượng", "để bán"));
-
-        // Giữ nguyên các config khác
         addDefault("buy-order", Collections.singletonList("&8- &6%coins% coins&7 each | &a%amount%&7x"));
         addDefault("buy-order-none", Collections.singletonList("&cGiao dịch đã tạm ngưng"));
         addDefault("buy-order-amount-sign", Arrays.asList("", "^^^^^^^^^^^^^^^", "Enter amount", "to order"));
@@ -79,7 +70,6 @@ public class DefaultMenuConfig extends CustomConfig implements MenuConfig {
         addDefault("loading", "&7Loading...");
     }
 
-    // ... (Giữ nguyên phần còn lại) ...
     @Override
     public List<String> getStringList(String path, Placeholder... placeholders) { return formatStringList(getConfig().getStringList(path), placeholders); }
     @Override

@@ -59,10 +59,6 @@ public class MenuListeners implements Listener {
         }, 1);
     }
 
-    /*
-    GUI needs to be frozen when player clicks air item stack because ContainrGUI can't handle these items and item-nbt will throw NPE because of this
-    ContainrGUI handles only null item stacks and in older versions null item stack is always replaced with air by bukkit and can't be set to null
-     */
     @EventHandler(priority = EventPriority.LOW)
     public void freezeGuiOnAirClick(InventoryClickEvent event) {
         Player player = (Player) event.getWhoClicked();
@@ -71,7 +67,6 @@ public class MenuListeners implements Listener {
 
         if (!GUIRepository.hasOpen(player)) return;
 
-        //Allow player to drag item into edit menu
         if (!isEditMenu(event.getView())) {
             event.setCancelled(true);
         }

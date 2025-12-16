@@ -46,8 +46,6 @@ public class EditCommand implements CommandExecutor {
             }
         }
 
-        //bazaaredit lore edit/remove/add/confirm lineindex
-
         return true;
     }
 }

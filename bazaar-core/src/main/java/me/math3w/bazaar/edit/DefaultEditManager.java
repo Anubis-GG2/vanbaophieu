@@ -46,24 +46,17 @@ public class DefaultEditManager implements EditManager {
                 }).build().open(player);
     }
 
-    // [UPDATED] Đã thêm chức năng Drag & Drop Icon cho Category
     @Override
     public void openCategoryEdit(Player player, Category category) {
         MessageInputManager messageInputManager = bazaarPlugin.getMessageInputManager();
 
         new EditMenuBuilder().title("Edit Category")
                 .updateMenuPlayerConsumer(p -> openCategoryEdit(p, category))
-
-                // Element 13: Preview Icon hiện tại
                 .addPreviewElement(13, category.getIcon(), category::setIcon)
-
-                // Element 29: Sửa tên
                 .addNameEditElement(messageInputManager, 29, category.getIcon().getItemMeta().getDisplayName(), newName -> {
                     ItemStack newItem = ItemBuilder.newBuilder(category.getIcon()).withName(newName).build();
                     category.setIcon(newItem);
                 })
-
-                // [NEW] Element 31: Thay thế Icon bằng Item Custom (Giống Stock)
                 .addElement(31, Component.element()
                         .item(ItemBuilder.newBuilder(Material.HOPPER)
                                 .withName(ChatColor.AQUA + "Replace Category Icon")
@@ -78,22 +71,18 @@ public class DefaultEditManager implements EditManager {
                                 return;
                             }
 
-                            // Clone item đầy đủ (bao gồm NBT, ModelData)
                             ItemStack newIcon = cursor.clone();
                             newIcon.setAmount(1);
 
-                            // Cập nhật icon
                             category.setIcon(newIcon);
 
-                            // Lưu config ngay lập tức để đảm bảo không mất khi restart
                             bazaarPlugin.getBazaarConfig().save();
 
-                            player.setItemOnCursor(null); // Xóa item trên tay (hoặc giữ lại tùy bạn)
+                            player.setItemOnCursor(null);
                             player.sendMessage(ChatColor.GREEN + "Category Icon updated!");
-                            openCategoryEdit(player, category); // Reload menu
+                            openCategoryEdit(player, category);
                         }).build())
 
-                // Element 33: Sửa Lore
                 .addLoreEditElement(messageInputManager, 33, category.getIcon().getItemMeta().getLore(), newLore -> {
                     ItemStack newItem = ItemBuilder.newBuilder(category.getIcon()).withLore(newLore).build();
                     category.setIcon(newItem);
@@ -121,17 +110,14 @@ public class DefaultEditManager implements EditManager {
                 .title("Edit Product (Stock)")
                 .updateMenuPlayerConsumer(player1 -> openProductEdit(player1, product))
 
-                // Element 13: Preview
                 .addPreviewElement(13, product.getRawIcon(), product::setIcon)
 
-                // Element 29: Edit Name
                 .addNameEditElement(messageInputManager, 29, product.getRawIcon().getItemMeta().getDisplayName(), newName -> {
                     ItemStack newItem = ItemBuilder.newBuilder(product.getRawIcon()).withName(newName).build();
                     product.setIcon(newItem);
                     product.setName(newName);
                 })
 
-                // Element 31: Replace Item (Custom Item support)
                 .addElement(31, Component.element()
                         .item(ItemBuilder.newBuilder(Material.HOPPER)
                                 .withName(ChatColor.AQUA + "Replace Stock Item")
@@ -150,16 +136,12 @@ public class DefaultEditManager implements EditManager {
 
                             product.setItem(newIcon);
                             product.setIcon(newIcon);
-
-                            // ProductImpl thường tự lưu khi setItem/setIcon, nhưng gọi save thêm cho chắc chắn
                             bazaarPlugin.getBazaarConfig().save();
-
                             player.setItemOnCursor(null);
                             player.sendMessage(ChatColor.GREEN + "Stock Item updated!");
                             openProductEdit(player, product);
                         }).build())
 
-                // Element 22: EDIT PRICE
                 .addElement(22, Component.element()
                         .item(ItemBuilder.newBuilder(XMaterial.GOLD_INGOT.parseItem())
                                 .withName(ChatColor.GOLD + "Edit Base Price")
@@ -188,7 +170,6 @@ public class DefaultEditManager implements EditManager {
                             });
                         }).build())
 
-                // Element 33: Edit Lore
                 .addLoreEditElement(messageInputManager, 33, product.getRawIcon().getItemMeta().getLore(), newLore -> {
                     ItemStack newItem = ItemBuilder.newBuilder(product.getRawIcon()).withLore(newLore).build();
                     product.setIcon(newItem);

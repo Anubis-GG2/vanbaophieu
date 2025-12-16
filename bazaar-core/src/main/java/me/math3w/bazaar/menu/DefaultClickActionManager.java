@@ -38,7 +38,6 @@ public class DefaultClickActionManager implements ClickActionManager {
         addClickAction("close", ContextClickInfo::close);
         addClickAction("back", (Consumer<ContextClickInfo>) clickInfo -> bazaarPlugin.getMenuHistory().openPrevious(clickInfo.getPlayer()));
 
-        // --- TÌM KIẾM (SEARCH) ---
         addClickAction("search", clickInfo -> {
             clickInfo.getPlayer().closeInventory();
             try {
@@ -57,23 +56,23 @@ public class DefaultClickActionManager implements ClickActionManager {
             }
         });
 
-        // --- MUA CỔ PHIẾU (BUY STOCK) ---
+
         addClickAction("buy-instantly", menuInfo -> clickInfo -> {
             if (!(menuInfo instanceof Product)) return;
             Product product = (Product) menuInfo;
 
             requireNumberFromPlayer(clickInfo.getPlayer(), "buy-instantly-amount-sign", amount -> {
-                // Gọi PortfolioManager để mua
+
                 bazaarPlugin.getPortfolioManager().buyStock(clickInfo.getPlayer(), product, amount);
             }, Integer::parseInt);
         });
 
-        // --- BÁN CỔ PHIẾU (SELL STOCK) ---
+
         addClickAction("sell-instantly", menuInfo -> clickInfo -> {
             if (!(menuInfo instanceof Product)) return;
             Product product = (Product) menuInfo;
 
-            // Chuột phải: Bán số lượng tùy chọn
+
             if (clickInfo.getClickType().isRightClick()) {
                 requireNumberFromPlayer(clickInfo.getPlayer(), "sell-instantly-amount-sign", amount -> {
                     bazaarPlugin.getPortfolioManager().sellStock(clickInfo.getPlayer(), product, amount);
@@ -81,7 +80,7 @@ public class DefaultClickActionManager implements ClickActionManager {
                 return;
             }
 
-            // Chuột trái: Bán tất cả khả dụng
+
             int available = bazaarPlugin.getPortfolioManager().getAvailableStockAmount(clickInfo.getPlayer().getUniqueId(), product);
             if (available > 0) {
                 bazaarPlugin.getPortfolioManager().sellStock(clickInfo.getPlayer(), product, available);
@@ -90,22 +89,22 @@ public class DefaultClickActionManager implements ClickActionManager {
             }
         });
 
-        // --- XEM PORTFOLIO (Sửa lỗi manage-orders) ---
+
         addClickAction("manage-orders", clickInfo -> {
-            // Mở Portfolio Menu thay vì Orders Menu
+
             bazaarPlugin.getBazaarConfig().getPortfolioMenuConfiguration()
-                    .getMenu(bazaarPlugin, false) // Thêm tham số false (không phải edit mode)
+                    .getMenu(bazaarPlugin, false)
                     .open(clickInfo.getPlayer());
         });
 
-        // --- XEM PENDING ORDERS (Hành động mới nếu cần) ---
+
         addClickAction("view-pending", clickInfo -> {
             bazaarPlugin.getBazaarConfig().getPendingOrdersMenuConfiguration()
                     .getMenu(bazaarPlugin, false)
                     .open(clickInfo.getPlayer());
         });
 
-        // Placeholder cho các action cũ để không lỗi
+
         addClickAction("buy-order", menuInfo -> clickInfo -> clickInfo.getPlayer().sendMessage("§cChức năng này đã bị tắt."));
         addClickAction("sell-offer", menuInfo -> clickInfo -> clickInfo.getPlayer().sendMessage("§cChức năng này đã bị tắt."));
         addClickAction("sell-inventory", menuInfo -> clickInfo -> {});
@@ -114,7 +113,7 @@ public class DefaultClickActionManager implements ClickActionManager {
     }
 
     private void addEditClickActions() {
-        // Cập nhật SignGUI cho Edit Search
+
         addEditClickAction("search", (configurableMenuItem, menuInfo) -> clickInfo -> {
             clickInfo.getPlayer().closeInventory();
             try {
@@ -139,7 +138,7 @@ public class DefaultClickActionManager implements ClickActionManager {
                     .open(clickInfo.getPlayer());
         });
 
-        // Giữ nguyên các placeholder edit khác
+
         addEditClickAction("buy-instantly", (item, info) -> clickInfo -> {});
         addEditClickAction("sell-instantly", (item, info) -> clickInfo -> {});
         addEditClickAction("buy-order", (item, info) -> clickInfo -> {});
@@ -182,7 +181,7 @@ public class DefaultClickActionManager implements ClickActionManager {
         return clickActions.keySet();
     }
 
-    // [FIX] Helper nhập số với SignGUI Builder
+
     private <T extends Number> void requireNumberFromPlayer(Player player, String sign, Consumer<T> callback, Function<String, T> parser) {
         Stack<GUI> history = bazaarPlugin.getMenuHistory().getHistory(player);
         player.closeInventory();

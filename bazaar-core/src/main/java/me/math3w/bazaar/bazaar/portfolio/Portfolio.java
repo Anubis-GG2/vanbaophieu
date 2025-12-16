@@ -8,11 +8,11 @@ public class Portfolio {
     private final UUID playerUuid;
     private final String productId;
     private final int amount;
-    private final double pricePerUnit; // Giá tại thời điểm mua/bán
+    private final double pricePerUnit;
     private PortfolioStatus status;
     private final Timestamp createdAt;
-    private final Timestamp unlockAt;  // Thời điểm được phép bán (Mua + 24h)
-    private Timestamp payoutAt;        // Thời điểm nhận tiền (Bán + 24h)
+    private final Timestamp unlockAt;
+    private Timestamp payoutAt;
 
     public Portfolio(int id, UUID playerUuid, String productId, int amount, double pricePerUnit,
                      PortfolioStatus status, Timestamp createdAt, Timestamp unlockAt, Timestamp payoutAt) {
@@ -40,9 +40,9 @@ public class Portfolio {
     public void setPayoutAt(Timestamp payoutAt) { this.payoutAt = payoutAt; }
 
     public enum PortfolioStatus {
-        LOCKED,           // Mới mua, chưa được bán (đợi 24h)
-        AVAILABLE,        // Đã mở khóa, có thể bán
-        PENDING_PAYOUT,   // Đã đặt lệnh bán, chờ nhận tiền (đợi 24h)
-        SOLD              // Đã hoàn tất thanh toán (Lịch sử)
+        LOCKED,
+        AVAILABLE,
+        PENDING_PAYOUT,
+        SOLD
     }
 }

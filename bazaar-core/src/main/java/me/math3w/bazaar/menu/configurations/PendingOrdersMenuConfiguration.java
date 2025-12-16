@@ -43,7 +43,6 @@ public class PendingOrdersMenuConfiguration extends MenuConfiguration implements
         return new PendingOrdersMenuConfiguration((String) args.get("name"), (Integer) args.get("rows"), (List<DefaultConfigurableMenuItem>) args.get("items"));
     }
 
-    // [FIX] Xóa @Override
     public GUI getMenu(BazaarAPI bazaarApi, boolean edit) {
         return getMenuBuilder().prepare((gui, player) -> {
             super.loadItems(gui, bazaarApi, player, null, edit);
@@ -60,28 +59,41 @@ public class PendingOrdersMenuConfiguration extends MenuConfiguration implements
                 for (PortfolioTransaction tx : txs) {
                     Product product = plugin.getBazaar().getProduct(tx.getProductId());
                     if (product == null) continue;
-
                     if (tx.getType() == PortfolioTransaction.TransactionType.SELL_PENDING) {
-                        boolean canClaim = tx.isSettled();
+                        double totalValue = tx.getValue();
+                        double settled = tx.getSettledValue();
+                        double claimed = tx.getClaimedValue();
+                        double claimable = settled - claimed;
+                        double percentSettled = (totalValue > 0) ? (settled / totalValue * 100) : 0;
+                        String progressBar = getProgressBar(settled, totalValue);
+
                         ItemStack icon = ItemBuilder.newBuilder(XMaterial.GOLD_NUGGET.parseItem())
                                 .withName("§6Lệnh Bán: " + product.getName())
-                                .appendLore("§7Giá trị: §6" + Utils.getTextPrice(tx.getValue()))
-                                .appendLore("§7Trạng thái: " + (canClaim ? "§aĐÃ THANH KHOẢN" : "§eĐANG CHỜ"))
+                                .appendLore("§7--------------------")
+                                .appendLore("§fTổng giá trị: §6" + Utils.getTextPrice(totalValue))
+                                .appendLore("§fĐã duyệt chi: §e" + Utils.getTextPrice(settled) + " §7(" + String.format("%.1f", percentSettled) + "%)")
+                                .appendLore("§fĐã rút: §a" + Utils.getTextPrice(claimed))
                                 .appendLore("")
-                                .appendLore(canClaim ? "§eBấm để RÚT TIỀN ngay!" : "§7Mở khóa trong: §f" + formatTime(tx.getTimeRemaining()))
+                                .appendLore("§7Tiến độ Quỹ: " + progressBar)
+                                .appendLore("")
+                                .appendLore(claimable > 0 ? "§a§lCÓ THỂ RÚT: " + Utils.getTextPrice(claimable) : "§7Đang chờ Quỹ cấp vốn...")
+                                .appendLore("§7--------------------")
+                                .appendLore(claimable > 0 ? "§eBấm để RÚT TIỀN ngay!" : "§7Vui lòng chờ thêm...")
                                 .build();
 
                         c.appendElement(Component.element().click(info -> {
-                            if (canClaim) {
+                            if (claimable > 0) {
                                 plugin.getPortfolioManager().claimMoney(player, tx);
-                                gui.close(player);
+                                gui.update(player);
                             }
                         }).item(icon).build());
-                    } else if (tx.getType() == PortfolioTransaction.TransactionType.BUY_HOLDING && !tx.isSettled()) {
+
+                    }
+                    else if (tx.getType() == PortfolioTransaction.TransactionType.BUY_HOLDING && !tx.isSettled()) {
                         ItemStack icon = ItemBuilder.newBuilder(XMaterial.CLOCK.parseItem())
                                 .withName("§bLệnh Mua: " + product.getName())
                                 .appendLore("§7Số lượng: §f" + tx.getAmount())
-                                .appendLore("§7Trạng thái: §cĐANG KHÓA")
+                                .appendLore("§7Trạng thái: §cĐANG KHÓA (T+1)")
                                 .appendLore("")
                                 .appendLore("§7Mở khóa trong: §f" + formatTime(tx.getTimeRemaining()))
                                 .build();
@@ -95,9 +107,21 @@ public class PendingOrdersMenuConfiguration extends MenuConfiguration implements
         }).build();
     }
 
+    private String getProgressBar(double current, double max) {
+        int totalBars = 20;
+        int filledBars = (int) ((current / max) * totalBars);
+        StringBuilder sb = new StringBuilder("§a");
+        for (int i = 0; i < totalBars; i++) {
+            if (i == filledBars) sb.append("§7");
+            sb.append("|");
+        }
+        return sb.toString();
+    }
+
     private String formatTime(long millis) {
         long seconds = millis / 1000;
         long minutes = seconds / 60;
-        return String.format("%02d:%02d", minutes, seconds % 60);
+        long hours = minutes / 60;
+        return String.format("%02dh %02dm", hours, minutes % 60);
     }
 }

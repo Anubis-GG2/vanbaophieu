@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public interface Product extends MenuInfo {
-    // --- Visual & Metadata ---
     ItemStack getItem();
     void setItem(ItemStack item);
     ItemStack getIcon(ContainerComponent container, int itemSlot, Player player);
@@ -21,28 +20,20 @@ public interface Product extends MenuInfo {
     void setName(String name);
     String getId();
     ProductCategory getProductCategory();
-
-    // --- Financial Logic ---
     double getCurrentPrice();
     void setCurrentPrice(double price);
     double getBasePrice();
     void setBasePrice(double basePrice);
     long getCirculatingSupply();
     void modifyCirculatingSupply(long delta);
-
-    // --- NEW: Chart Data ---
-    /**
-     * Lấy danh sách lịch sử giá để vẽ biểu đồ.
-     * Index 0 là cũ nhất, Index cuối là mới nhất.
-     */
     List<Double> getPriceHistory();
-
-    /**
-     * Thêm giá mới vào lịch sử (gọi mỗi khi MarketTicker cập nhật giá).
-     */
     void addHistoryPoint(double price);
 
-    // --- Deprecated P2P Logic ---
+
+    List<StockCandle> getCandleHistory();
+
+    void addCandle(StockCandle candle);
+
     @Deprecated
     CompletableFuture<Double> getLowestBuyPrice();
     @Deprecated

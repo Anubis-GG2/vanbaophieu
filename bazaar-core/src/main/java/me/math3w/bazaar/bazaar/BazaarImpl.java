@@ -20,23 +20,19 @@ import java.util.stream.Collectors;
 
 public class BazaarImpl implements Bazaar {
     private final BazaarPlugin bazaarPlugin;
-    // [Lưu ý] List này phải là Mutable (có thể thay đổi), ArrayList là ok.
     private final List<Category> categories;
 
     public BazaarImpl(BazaarPlugin bazaarPlugin) {
         this.bazaarPlugin = bazaarPlugin;
-        // Khởi tạo ban đầu
         this.categories = loadCategories();
     }
 
-    // Tách logic load ra hàm riêng để tái sử dụng
     private List<Category> loadCategories() {
         return bazaarPlugin.getBazaarConfig().getCategories().stream()
                 .map(categoryConfiguration -> new CategoryImpl(this, categoryConfiguration))
                 .collect(Collectors.toList());
     }
 
-    // [NEW] Triển khai hàm reload
     @Override
     public void reload() {
         this.categories.clear();

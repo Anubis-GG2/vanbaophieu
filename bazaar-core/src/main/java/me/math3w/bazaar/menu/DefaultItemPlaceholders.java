@@ -9,7 +9,7 @@ import me.math3w.bazaar.api.config.MessagePlaceholder;
 import me.math3w.bazaar.api.menu.ItemPlaceholderFunction;
 import me.math3w.bazaar.api.menu.ItemPlaceholders;
 import me.math3w.bazaar.api.menu.MenuInfo;
-import me.math3w.bazaar.bazaar.market.MarketTicker; // [NEW] Import MarketTicker
+import me.math3w.bazaar.bazaar.market.MarketTicker;
 import me.math3w.bazaar.utils.MenuUtils;
 import me.math3w.bazaar.utils.Utils;
 import me.zort.containr.ContainerComponent;
@@ -20,7 +20,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
-import java.util.Collections; // [FIX] Thêm import
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -36,7 +36,6 @@ public class DefaultItemPlaceholders implements ItemPlaceholders {
 
         MenuConfig menuConfig = bazaarPlugin.getMenuConfig();
 
-        // 1. Placeholder cho việc bán kho đồ (Sell Inventory)
         addItemPlaceholder((containerComponent, item, itemSlot, player, info) -> replaceMultiLinePlaceholder(menuConfig,
                 containerComponent,
                 item,
@@ -51,14 +50,12 @@ public class DefaultItemPlaceholders implements ItemPlaceholders {
                     double totalEarnedCoins = 0;
 
                     int itemsLineIndex = getPlaceholderLoreLineIndex(lore, "items");
-                    if (itemsLineIndex != -1) lore.remove(itemsLineIndex); // [FIX] Check index trước khi remove
+                    if (itemsLineIndex != -1) lore.remove(itemsLineIndex);
 
                     int currentItemIndex = 0;
                     for (Map.Entry<Product, Integer> productAmountEntry : productsInInventory.entrySet()) {
                         Product product = productAmountEntry.getKey();
                         int amount = productAmountEntry.getValue();
-
-                        // [STOCKCRAFT] Lấy giá từ MarketTicker thay vì OrderManager
                         double unitPrice = bazaarPlugin.getMarketTicker().getCurrentPrice(product);
                         double totalItemPrice = unitPrice * amount;
 
@@ -87,13 +84,11 @@ public class DefaultItemPlaceholders implements ItemPlaceholders {
                 "loading",
                 "sell-inventory-none"));
 
-        // 2. Placeholder tên sản phẩm cơ bản
         addItemPlaceholder((containerComponent, item, itemSlot, player, info) -> {
             if (info instanceof Product) {
                 Product product = (Product) info;
                 return menuConfig.replaceLorePlaceholders(item, "product", new MessagePlaceholder("product", product.getName()));
             }
-            // Hỗ trợ hiển thị tên cho các Order cũ nếu còn sót lại
             if (info instanceof BazaarOrder) {
                 BazaarOrder order = (BazaarOrder) info;
                 return menuConfig.replaceLorePlaceholders(item, "product", new MessagePlaceholder("product", order.getProduct().getName()));
@@ -101,13 +96,10 @@ public class DefaultItemPlaceholders implements ItemPlaceholders {
             return item;
         });
 
-        // 3. [STOCKCRAFT] Placeholder MUA NGAY (Buy Instantly)
-        // Thay vì dùng OrderManager, dùng giá trực tiếp từ MarketTicker
         addItemPlaceholder((containerComponent, item, itemSlot, player, info) -> {
             if (!(info instanceof Product)) return item;
             Product product = (Product) info;
 
-            // Lấy giá hiện tại
             double currentPrice = bazaarPlugin.getMarketTicker().getCurrentPrice(product);
 
             return menuConfig.replaceLorePlaceholders(item,
@@ -117,7 +109,6 @@ public class DefaultItemPlaceholders implements ItemPlaceholders {
             );
         });
 
-        // 4. [STOCKCRAFT] Placeholder BÁN NGAY (Sell Instantly)
         addItemPlaceholder((containerComponent, item, itemSlot, player, info) -> {
             if (!(info instanceof Product)) return item;
             Product product = (Product) info;
@@ -133,8 +124,6 @@ public class DefaultItemPlaceholders implements ItemPlaceholders {
             );
         });
 
-        // 5. [STOCKCRAFT] Placeholder THỐNG KÊ MUA (Thay thế Buy Orders cũ)
-        // Vì là Admin Liquidity, không còn danh sách Order. Hiển thị thông tin thị trường thay thế.
         addItemPlaceholder((containerComponent, item, itemSlot, player, info) -> {
             if (!(info instanceof Product)) return item;
             Product product = (Product) info;
@@ -144,11 +133,9 @@ public class DefaultItemPlaceholders implements ItemPlaceholders {
                     item,
                     itemSlot,
                     player,
-                    "buy-orders", // Giữ nguyên key cũ để tương thích config
+                    "buy-orders",
                     CompletableFuture.supplyAsync(() -> {
-                        // Hiển thị Trend hoặc thông tin thị trường thay vì list order
                         double price = bazaarPlugin.getMarketTicker().getCurrentPrice(product);
-                        // Mockup: Hiển thị giá hiện tại như là "Top Order" duy nhất
                         return Collections.singletonList(
                                 ChatColor.GRAY + "Giá hiện tại: " + ChatColor.GOLD + Utils.getTextPrice(price) + " linh thạch"
                         );
@@ -157,7 +144,6 @@ public class DefaultItemPlaceholders implements ItemPlaceholders {
                     "buy-order-none");
         });
 
-        // 6. [STOCKCRAFT] Placeholder THỐNG KÊ BÁN (Thay thế Sell Offers cũ)
         addItemPlaceholder((containerComponent, item, itemSlot, player, info) -> {
             if (!(info instanceof Product)) return item;
             Product product = (Product) info;
@@ -167,7 +153,7 @@ public class DefaultItemPlaceholders implements ItemPlaceholders {
                     item,
                     itemSlot,
                     player,
-                    "sell-offers", // Giữ nguyên key cũ
+                    "sell-offers",
                     CompletableFuture.supplyAsync(() -> {
                         double price = bazaarPlugin.getMarketTicker().getCurrentPrice(product);
                         return Collections.singletonList(
@@ -232,28 +218,13 @@ public class DefaultItemPlaceholders implements ItemPlaceholders {
         newItem.setItemMeta(itemMeta);
 
         linesFuture.thenAccept(lines -> {
-            // [FIX] Cần reload lại item từ container để tránh overwrite các thay đổi khác
-            // Nhưng trong ngữ cảnh này, ta chấp nhận update đè vì lore là dynamic
-            // Để an toàn, chỉ update nếu GUI vẫn mở
 
-            // Logic update GUI item:
-            // Cần tính toán lại lore dựa trên item hiện tại trong GUI (vì có thể placeholder khác đã chạy)
-            // Tuy nhiên để đơn giản và tránh phức tạp, ta dùng MenuUtils.updateGuiItem
-            // Chú ý: Code này giả định item không bị thay đổi bởi luồng khác quá nhiều.
-
-            // Xóa loading lines
-            // (Đoạn này logic cũ khá rủi ro nếu loading lines > 1 và bị dịch chuyển,
-            // nhưng giữ nguyên logic cũ của bạn để tránh phá vỡ cấu trúc)
-            // Cách tốt nhất là replace lại từ đầu hoặc reload menu.
-
-            // Ở đây tôi viết lại logic replace an toàn hơn một chút:
-            ItemStack currentItem = newItem; // Item đang giữ placeholder loading
+            ItemStack currentItem = newItem;
             ItemMeta currentMeta = currentItem.getItemMeta();
             if (currentMeta == null) return;
 
             List<String> currentLore = new ArrayList<>(currentMeta.getLore());
 
-            // Tìm lại vị trí loading (vì có thể đã dịch chuyển)
             int loadingIndex = -1;
             String firstLoadingLine = loadingPlaceholderValue.isEmpty() ? "" : Utils.colorize(loadingPlaceholderValue.get(0));
 
@@ -265,12 +236,10 @@ public class DefaultItemPlaceholders implements ItemPlaceholders {
             }
 
             if (loadingIndex != -1) {
-                // Xóa các dòng loading
                 for(int i=0; i<loadingPlaceholderValue.size(); i++) {
                     if (loadingIndex < currentLore.size()) currentLore.remove(loadingIndex);
                 }
 
-                // Thêm dòng mới
                 List<String> linesToAdd = lines.isEmpty() ? menuConfig.getStringList(nonePlaceholder) : lines;
                 addLinesToLore(linesToAdd, currentLore, loadingIndex);
 
@@ -287,7 +256,6 @@ public class DefaultItemPlaceholders implements ItemPlaceholders {
     private void addLinesToLore(List<String> placeholderValue, List<String> lore, int index) {
         for (int i = 0; i < placeholderValue.size(); i++) {
             String placeholderLine = placeholderValue.get(i);
-            // [FIX] Đảm bảo index không vượt quá size
             if (index + i <= lore.size()) {
                 lore.add(index + i, placeholderLine);
             } else {

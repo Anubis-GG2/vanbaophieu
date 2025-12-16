@@ -39,6 +39,7 @@ public class StockCommand implements CommandExecutor {
         }
 
         String action = args[0].toLowerCase();
+
         // 1. ADD STOCK
         if (action.equals("add")) {
             if (args.length < 3) {
@@ -56,13 +57,14 @@ public class StockCommand implements CommandExecutor {
             }
 
             ProductConfiguration productConfig = plugin.getBazaarConfig().getProductConfiguration(item, stockName);
+            productConfig.setPrice(100.0);
+
             plugin.getBazaarConfig().addProductToCategory(catName, productConfig);
 
             player.sendMessage("§aĐã thêm Stock [" + stockName + "] vào [" + catName + "]");
             player.sendMessage("§7Dùng /stock setprice để chỉnh giá.");
 
         }
-        // 2. SET PRICE
         else if (action.equals("setprice")) {
             if (args.length < 3) {
                 player.sendMessage("§cDùng: /stock setprice <tên_cổ_phiếu> <giá>");
@@ -88,11 +90,10 @@ public class StockCommand implements CommandExecutor {
                 impl.getConfig().setPrice(newPrice);
                 plugin.getBazaarConfig().save();
             }
-            // Giả định phương thức này tồn tại trong version custom của bạn
-            // plugin.getMarketTicker().setManualPrice(product, newPrice);
+            plugin.getMarketTicker().setManualPrice(product, newPrice);
             player.sendMessage("§aĐã cập nhật giá [" + product.getName() + "] thành " + newPrice);
         }
-        // 3. SET ICON (Product)
+
         else if (action.equals("seticon")) {
             if (args.length < 2) {
                 player.sendMessage("§cDùng: /stock seticon <tên_cổ_phiếu>");
@@ -119,28 +120,24 @@ public class StockCommand implements CommandExecutor {
 
             player.sendMessage("§aĐã cập nhật Icon/Item cho [" + product.getName() + "] thành công!");
         }
-        // 4. [NEW] SET CATEGORY ICON
+
         else if (action.equals("setcategoryicon")) {
             if (args.length < 2) {
                 player.sendMessage("§cDùng: /stock setcategoryicon <tên_danh_mục>");
                 return true;
             }
-
             ItemStack itemInHand = player.getInventory().getItemInMainHand();
             if (itemInHand == null || itemInHand.getType() == Material.AIR) {
                 player.sendMessage("§cVui lòng cầm Custom Item trên tay!");
                 return true;
             }
 
-            // Lấy tên category từ arguments (hỗ trợ tên có dấu cách)
             StringBuilder sb = new StringBuilder();
             for (int i = 1; i < args.length; i++) sb.append(args[i]).append(" ");
             String categoryTarget = sb.toString().trim();
 
             Category foundCategory = null;
-            // Duyệt qua danh sách category để tìm
             for (Category cat : plugin.getBazaar().getCategories()) {
-                // So sánh tên (bỏ mã màu để chính xác hơn)
                 if (ChatColor.stripColor(cat.getName()).equalsIgnoreCase(categoryTarget) || cat.getName().equalsIgnoreCase(categoryTarget)) {
                     foundCategory = cat;
                     break;
@@ -155,15 +152,92 @@ public class StockCommand implements CommandExecutor {
             ItemStack newIcon = itemInHand.clone();
             newIcon.setAmount(1);
 
-            foundCategory.setIcon(newIcon); // Tự động lưu config trong impl
+            foundCategory.setIcon(newIcon);
             player.sendMessage("§aĐã cập nhật Icon cho danh mục [" + foundCategory.getName() + "] thành công!");
         }
-        // 5. REMOVE STOCK
+
         else if (action.equals("remove")) {
             String stockId = args[1].toLowerCase().replace(" ", "_");
             plugin.getBazaarConfig().removeProduct(stockId);
             player.sendMessage("§aĐã xóa Stock ID: " + stockId);
-        } else {
+        }
+
+        else if (action.equals("timeskip")) {
+            if (args.length < 2) {
+                player.sendMessage("§cDùng: /stock timeskip <giờ>");
+                return true;
+            }
+            try {
+                int hours = Integer.parseInt(args[1]);
+                plugin.getPortfolioManager().processTimeSkip(hours);
+                player.sendMessage("§aĐã tua nhanh thời gian " + hours + " giờ cho toàn bộ Portfolio!");
+            } catch (NumberFormatException e) {
+                player.sendMessage("§cSố giờ không hợp lệ.");
+            }
+        }
+
+
+        else if (action.equals("manipulate")) {
+            if (args.length < 6) {
+                player.sendMessage("§cDùng: /stock manipulate <increase/decrease> <stock/category> <name> <%> <hours>");
+                return true;
+            }
+
+            String mode = args[1].toLowerCase();
+            String type = args[2].toLowerCase();
+            String targetName = args[3].replace("_", " ");
+            double percent;
+            int hours;
+
+            try {
+                percent = Double.parseDouble(args[4]);
+                hours = Integer.parseInt(args[5]);
+            } catch (NumberFormatException e) {
+                player.sendMessage("§cPhần trăm hoặc thời gian không hợp lệ.");
+                return true;
+            }
+
+            String targetId = targetName;
+            boolean isCategory = false;
+
+            if (type.equals("stock")) {
+                Product p = plugin.getBazaar().getProduct(targetName.toLowerCase().replace(" ", "_"));
+                if (p == null) {
+                    player.sendMessage("§cKhông tìm thấy Stock: " + targetName);
+                    return true;
+                }
+                targetId = p.getId();
+            } else if (type.equals("category")) {
+                boolean found = false;
+                for (Category cat : plugin.getBazaar().getCategories()) {
+                    if (ChatColor.stripColor(cat.getName()).equalsIgnoreCase(targetName)) {
+                        targetId = cat.getName();
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    player.sendMessage("§cKhông tìm thấy Category: " + targetName);
+                    return true;
+                }
+                isCategory = true;
+            } else {
+                player.sendMessage("§cLoại mục tiêu phải là 'stock' hoặc 'category'.");
+                return true;
+            }
+
+            if (mode.equals("decrease")) {
+                percent = -percent;
+            } else if (!mode.equals("increase")) {
+                player.sendMessage("§cChế độ phải là 'increase' hoặc 'decrease'.");
+                return true;
+            }
+
+            plugin.getMarketTicker().registerManipulation(targetId, isCategory, percent, hours);
+            player.sendMessage("§aĐã kích hoạt thao túng thị trường: " + (percent > 0 ? "TĂNG" : "GIẢM") + " " + Math.abs(percent) + "% trong " + hours + "h.");
+            player.sendMessage("§7Mục tiêu: " + targetId);
+        }
+        else {
             sendHelp(player);
         }
 
@@ -177,5 +251,7 @@ public class StockCommand implements CommandExecutor {
         player.sendMessage("§6/stock seticon <id> §7(Icon Cổ phiếu)");
         player.sendMessage("§6/stock setcategoryicon <category> §7(Icon Danh mục)");
         player.sendMessage("§6/stock remove <id> §7(Xóa)");
+        player.sendMessage("§6/stock timeskip <hours> §7(Tua thời gian T+1)");
+        player.sendMessage("§6/stock manipulate <inc/dec> <stock/cat> <name> <%> <hours>");
     }
 }

@@ -27,7 +27,6 @@ public class BazaarConfig extends CustomConfig {
     protected void addDefaults() {
         addDefaultCategories();
 
-        // Config cho Portfolio và Pending Orders
         addDefault("portfolio-menu", PortfolioMenuConfiguration.createDefaultConfiguration());
         addDefault("pending-orders-menu", PendingOrdersMenuConfiguration.createDefaultConfiguration());
     }
@@ -35,7 +34,6 @@ public class BazaarConfig extends CustomConfig {
     private void addDefaultCategories() {
         ArrayList<CategoryConfiguration> categories = new ArrayList<>();
 
-        // 1. Trại "Trẻ Nhà Họ Lạc"
         categories.add(createDefaultCategory(
                 Material.PAPER,
                 "&eTrại Trẻ Nhà Họ Lạc",
@@ -43,7 +41,6 @@ public class BazaarConfig extends CustomConfig {
                 getTraiTreNhaHoLacCategories()
         ));
 
-        // 2. "Nhà Sách Hảo Tâm"
         categories.add(createDefaultCategory(
                 Material.PAPER,
                 "&bNhà Sách Hảo Tâm",
@@ -51,7 +48,6 @@ public class BazaarConfig extends CustomConfig {
                 getNhaSachHaoTamCategories()
         ));
 
-        // 3. "Nơi Thần Vệ Ghé Chơi"
         categories.add(createDefaultCategory(
                 Material.PAPER,
                 "&cThần Vệ Giới",
@@ -59,7 +55,6 @@ public class BazaarConfig extends CustomConfig {
                 getNoiThanVeGheChoiCategories()
         ));
 
-        // 4. Vùng Đất Tam Thập Lục
         categories.add(createDefaultCategory(
                 Material.PAPER,
                 "&6Tam Thập Lục Giới",
@@ -67,7 +62,6 @@ public class BazaarConfig extends CustomConfig {
                 getVungDatTamThapLucCategories()
         ));
 
-        // 5. "Thế giới hạ đường huyết"
         categories.add(createDefaultCategory(
                 Material.PAPER,
                 "&dHạ Đường Huyết Giới",
@@ -83,8 +77,6 @@ public class BazaarConfig extends CustomConfig {
         }
         addDefault("orders", OrdersMenuConfiguration.createDefaultConfiguration());
     }
-
-    // --- CÁC DANH MỤC CỤ THỂ ---
 
     private List<ProductCategoryConfiguration> getTraiTreNhaHoLacCategories() {
         return Collections.singletonList(
@@ -147,8 +139,6 @@ public class BazaarConfig extends CustomConfig {
                 }, ChatColor.LIGHT_PURPLE)
         );
     }
-
-    // --- DYNAMIC MANAGEMENT METHODS ---
 
     public void addCategory(String name, ItemStack icon) {
         List<CategoryConfiguration> categories = getCategories();
@@ -235,7 +225,6 @@ public class BazaarConfig extends CustomConfig {
         }
     }
 
-    // --- GETTERS ---
     public PortfolioMenuConfiguration getPortfolioMenuConfiguration() {
         return (PortfolioMenuConfiguration) getConfig().get("portfolio-menu");
     }
@@ -244,7 +233,6 @@ public class BazaarConfig extends CustomConfig {
         return (PendingOrdersMenuConfiguration) getConfig().get("pending-orders-menu");
     }
 
-    // --- HELPER METHODS ---
 
     private CategoryConfiguration createDefaultCategory(ItemStack icon, String name, ItemStack glass, List<ProductCategoryConfiguration> productCategories) {
         String colorizedName = Utils.colorize(name);
@@ -276,7 +264,6 @@ public class BazaarConfig extends CustomConfig {
                 Arrays.asList(products));
     }
 
-    // [MODIFIED] Hàm này cho phép set giá mặc định (100.0)
     public ProductConfiguration getProductConfiguration(Material material, String name, double price) {
         return new ProductConfiguration(
                 new ItemStack(material),
@@ -292,7 +279,6 @@ public class BazaarConfig extends CustomConfig {
         );
     }
 
-    // Giữ hàm cũ để tương thích (mặc định giá 10.0) nếu cần
     public ProductConfiguration getProductConfiguration(ItemStack item, String name) {
         return new ProductConfiguration(item,
                 ItemBuilder.newBuilder(item)

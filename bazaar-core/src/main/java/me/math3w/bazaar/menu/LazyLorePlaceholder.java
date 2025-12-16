@@ -53,7 +53,6 @@ public class LazyLorePlaceholder implements Placeholder {
 
         String loadingLine = text.replaceAll("%" + placeholder + "%", loadingValue);
 
-        //Need to wait at least 3 ticks because the ContainrGUI opens the menu with 3 ticks delay. So without this element will be null and value will stuck at loading if our valueFuture task would take less than 3 ticks
         Instant startInstant = Instant.now();
         valueFuture.thenAccept(value -> {
             Instant doneInstant = Instant.now();

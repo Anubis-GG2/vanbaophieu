@@ -4,6 +4,7 @@ import me.math3w.bazaar.BazaarPlugin;
 import me.math3w.bazaar.api.BazaarAPI;
 import me.math3w.bazaar.api.bazaar.Product;
 import me.math3w.bazaar.api.bazaar.ProductCategory;
+import me.math3w.bazaar.api.bazaar.StockCandle;
 import me.math3w.bazaar.api.config.MessagePlaceholder;
 import me.math3w.bazaar.utils.Utils;
 import me.zort.containr.ContainerComponent;
@@ -14,16 +15,24 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class ProductImpl implements Product {
     private final ProductCategory productCategory;
     private final ProductConfiguration config;
+    private final List<Double> priceHistory = new ArrayList<>();
+    private final List<StockCandle> candleHistory = new ArrayList<>();
 
     public ProductImpl(ProductCategory productCategory, ProductConfiguration config) {
         this.productCategory = productCategory;
         this.config = config;
+
+        BazaarPlugin plugin = (BazaarPlugin) getBazaarApi();
+        if (plugin.getPortfolioManager() != null) {
+            this.candleHistory.addAll(plugin.getPortfolioManager().getDatabase().loadCandles(getId()));
+        }
     }
 
     @Override
@@ -75,18 +84,33 @@ public class ProductImpl implements Product {
 
     @Override
     public List<Double> getPriceHistory() {
-        return List.of();
+        return priceHistory;
+    }
+
+    @Override
+    public void addHistoryPoint(double price) {
+        priceHistory.add(price);
+        if (priceHistory.size() > 100) {
+            priceHistory.remove(0);
+        }
+    }
+
+    @Override
+    public List<StockCandle> getCandleHistory() {
+        return Collections.unmodifiableList(candleHistory);
+    }
+
+    @Override
+    public void addCandle(StockCandle candle) {
+        candleHistory.add(candle);
+        BazaarPlugin plugin = (BazaarPlugin) getBazaarApi();
+        if (plugin.getPortfolioManager() != null) {
+            plugin.getPortfolioManager().getDatabase().saveCandle(getId(), candle);
+        }
     }
 
     public ProductConfiguration getConfig() { return config; }
     private BazaarAPI getBazaarApi() { return productCategory.getCategory().getBazaar().getBazaarApi(); }
-
-    // [FIX] Implement method còn thiếu từ Interface
-    @Override
-    public void addHistoryPoint(double price) {
-        // Có thể để trống nếu không dùng hệ thống history cũ
-        // Hoặc log lại nếu cần
-    }
 
     @Override
     public ItemStack getIcon(ContainerComponent container, int itemSlot, Player player) {
@@ -113,7 +137,6 @@ public class ProductImpl implements Product {
         for (String line : lore) {
             String newLine = line;
             for (MessagePlaceholder p : placeholders) {
-                // [FIX] Sử dụng p.replace() thay vì p.getKey()
                 newLine = p.replace(newLine);
             }
             newLore.add(newLine);

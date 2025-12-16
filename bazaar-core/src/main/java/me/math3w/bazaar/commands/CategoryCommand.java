@@ -31,16 +31,14 @@ public class CategoryCommand implements CommandExecutor {
             return true;
         }
 
-        // Cú pháp: /category <create|delete> <name>
         if (args.length < 2) {
             player.sendMessage(ChatColor.RED + "Sử dụng: /category <create|delete> <tên_danh_mục>");
             return true;
         }
 
         String action = args[0].toLowerCase();
-        String name = args[1]; // Tên danh mục (ví dụ: Tech, Food...)
+        String name = args[1];
 
-        // Nối tên nếu có khoảng trắng (VD: Tech Stocks)
         if (args.length > 2) {
             StringBuilder sb = new StringBuilder();
             for (int i = 1; i < args.length; i++) {
@@ -52,10 +50,8 @@ public class CategoryCommand implements CommandExecutor {
         switch (action) {
             case "create":
             case "add":
-                // Lấy item trên tay làm Icon cho category
                 ItemStack handItem = player.getInventory().getItemInMainHand();
                 if (handItem == null || handItem.getType() == Material.AIR) {
-                    // Fallback icon nếu không cầm gì
                     handItem = XMaterial.CHEST.parseItem();
                 }
 

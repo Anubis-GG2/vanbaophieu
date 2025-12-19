@@ -5,6 +5,8 @@ author: _Math3w_
 api-version: 1.21
 depend:
   - Vault
+softdepend:
+  - NBTAPI
 commands:
   vanbaophieu:
     description: Opens bazaar menu

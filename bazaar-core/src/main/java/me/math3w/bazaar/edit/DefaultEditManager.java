@@ -1,12 +1,15 @@
 package me.math3w.bazaar.edit;
 
 import me.math3w.bazaar.BazaarPlugin;
+import me.math3w.bazaar.api.bazaar.Category;
 import me.math3w.bazaar.api.bazaar.Product;
+import me.math3w.bazaar.api.bazaar.ProductCategory;
 import me.math3w.bazaar.api.edit.EditManager;
+import me.math3w.bazaar.api.menu.ConfigurableMenuItem;
 import me.math3w.bazaar.bazaar.product.ProductImpl;
 import me.math3w.bazaar.utils.Utils;
 import me.zort.containr.Component;
-import me.zort.containr.ContextClickInfo; // [NEW] Import
+import me.zort.containr.ContextClickInfo;
 import me.zort.containr.GUI;
 import me.zort.containr.internal.util.ItemBuilder;
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -14,8 +17,9 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.event.inventory.ClickType;
 
-import java.util.function.Consumer; // [NEW] Import
+import java.util.function.Consumer;
 
 public class DefaultEditManager implements EditManager {
     private final BazaarPlugin plugin;
@@ -24,15 +28,40 @@ public class DefaultEditManager implements EditManager {
         this.plugin = plugin;
     }
 
-    // [FIX LỖI 1] Override method bắt buộc của Interface EditManager
-    // Dù chúng ta không dùng logic này nữa nhưng phải có để không lỗi build
+    @Override public void openItemEdit(Player player, ConfigurableMenuItem configurableMenuItem) {}
+    @Override public void openCategoryEdit(Player player, Category category) {}
+    @Override public void openProductCategoryEdit(Player player, ProductCategory productCategory) {}
+
+    // [FIX] Sửa logic chuyển Category: Trái = Chuyển, Phải = Sửa
     @Override
-    public Consumer<ContextClickInfo> createEditableItemClickAction(Consumer<ContextClickInfo> primaryAction, Consumer<ContextClickInfo> secondaryAction, Consumer<ContextClickInfo> editAction, boolean edit) {
+    public Consumer<ContextClickInfo> createEditableItemClickAction(Consumer<ContextClickInfo> defaultClickAction, Consumer<ContextClickInfo> defaultEditClickAction, Consumer<ContextClickInfo> editClickAction, boolean editing) {
         return info -> {
-            if (edit) {
-                editAction.accept(info);
+            if (editing) {
+                if (info.getClickType().isLeftClick()) {
+                    defaultEditClickAction.accept(info); // CHUYỂN CATEGORY
+                } else if (info.getClickType().isRightClick()) {
+                    editClickAction.accept(info); // SỬA CHI TIẾT
+                }
             } else {
-                primaryAction.accept(info);
+                defaultClickAction.accept(info);
+            }
+        };
+    }
+
+    // [FIX] Sửa logic Click cho Sản phẩm
+    @Override
+    public Consumer<ContextClickInfo> createEditableItemClickAction(Consumer<ContextClickInfo> defaultClickAction, Consumer<ContextClickInfo> defaultEditClickAction, Consumer<ContextClickInfo> editClickAction, Consumer<ContextClickInfo> removeClickAction, Consumer<ContextClickInfo> updateMenu, boolean editing) {
+        return info -> {
+            if (editing) {
+                if (info.getClickType().isLeftClick()) {
+                    defaultEditClickAction.accept(info);
+                } else if (info.getClickType().isRightClick()) {
+                    editClickAction.accept(info);
+                } else if (info.getClickType() == ClickType.MIDDLE) {
+                    removeClickAction.accept(info);
+                }
+            } else {
+                defaultClickAction.accept(info);
             }
         };
     }
@@ -40,102 +69,42 @@ public class DefaultEditManager implements EditManager {
     @Override
     public void openProductEdit(Player player, Product product) {
         GUI gui = Component.gui()
-                .title("Chỉnh sửa: " + product.getName())
+                .title("§0Chỉnh sửa: " + product.getName())
                 .rows(5)
                 .prepare((g, p) -> {
-                    // 1. Icon (Slot 13)
                     g.setElement(13, Component.element().item(product.getIcon(g, 13, p)).build());
 
-                    // 2. Chỉnh Giá (Slot 20)
+                    // Chỉnh Giá (Slot 20)
                     g.setElement(20, Component.element()
                             .click(info -> {
                                 p.closeInventory();
-                                p.sendMessage("");
-                                p.sendMessage("§e§lCHỈNH SỬA GIÁ:");
+                                p.sendMessage("§e§lVẠN BẢO PHIẾU ➜ §fNhập giá mới:");
                                 double price = (product instanceof ProductImpl) ? ((ProductImpl) product).getConfig().getPrice() : 0;
                                 p.sendMessage("§7Giá hiện tại: §a" + Utils.getTextPrice(price));
-
                                 TextComponent msg = new TextComponent("§a[BẤM ĐỂ NHẬP GIÁ MỚI]");
                                 msg.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/vanbaophieuedit setprice " + product.getId() + " "));
                                 p.spigot().sendMessage(msg);
-                                p.sendMessage("");
                             })
-                            .item(ItemBuilder.newBuilder(Material.GOLD_INGOT)
-                                    .withName("§eChỉnh sửa Giá")
-                                    .appendLore("§7Giá hiện tại: §f" + Utils.getTextPrice((product instanceof ProductImpl) ? ((ProductImpl) product).getConfig().getPrice() : 0))
-                                    .appendLore("").appendLore("§eBấm để nhập giá mới!")
-                                    .build())
-                            .build());
+                            .item(ItemBuilder.newBuilder(Material.GOLD_INGOT).withName("§eChỉnh sửa Giá").build()).build());
 
-                    // 3. Chỉnh Icon (Slot 21)
-                    g.setElement(21, Component.element()
-                            .click(info -> {
-                                p.closeInventory();
-                                p.sendMessage("");
-                                p.sendMessage("§b§lCHỈNH SỬA ICON:");
-                                p.sendMessage("§7Hãy cầm vật phẩm muốn làm Icon trên tay.");
-                                TextComponent msg = new TextComponent("§b[BẤM ĐỂ XÁC NHẬN ICON TRÊN TAY]");
-                                msg.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/vanbaophieuedit seticon " + product.getId()));
-                                p.spigot().sendMessage(msg);
-                                p.sendMessage("");
-                            })
-                            .item(ItemBuilder.newBuilder(Material.NETHER_STAR)
-                                    .withName("§bThay đổi Icon")
-                                    .appendLore("§7Đổi icon hiển thị của cổ phiếu.").appendLore("").appendLore("§bBấm để thay đổi!")
-                                    .build())
-                            .build());
-
-                    // 4. Chỉnh Tên (Slot 22)
-                    g.setElement(22, Component.element()
-                            .click(info -> {
-                                p.closeInventory();
-                                p.sendMessage("");
-                                p.sendMessage("§6§lCHỈNH SỬA TÊN:");
-                                p.sendMessage("§7Tên hiện tại: §f" + product.getName());
-                                TextComponent msg = new TextComponent("§6[BẤM ĐỂ ĐỔI TÊN]");
-                                msg.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/vanbaophieuedit setname " + product.getId() + " "));
-                                p.spigot().sendMessage(msg);
-                                p.sendMessage("");
-                            })
-                            .item(ItemBuilder.newBuilder(Material.NAME_TAG)
-                                    .withName("§6Đổi Tên Hiển Thị")
-                                    .appendLore("§7Tên hiện tại: §f" + product.getName()).appendLore("").appendLore("§6Bấm để đổi tên!")
-                                    .build())
-                            .build());
-
-                    // 5. Xóa Cổ Phiếu (Slot 24)
+                    // NÚT XÓA STOCK (Slot 24)
                     g.setElement(24, Component.element()
                             .click(info -> {
                                 plugin.getBazaarConfig().removeProduct(product.getId());
                                 product.getProductCategory().removeProduct(product);
                                 p.closeInventory();
-                                p.sendMessage("§c§lĐã xóa cổ phiếu [" + product.getName() + "] vĩnh viễn!");
-
-                                // [FIX LỖI 2] Đảm bảo BazaarConfig có hàm này (Xem bước 2 bên dưới)
+                                p.sendMessage("§c§l[!] §fĐã xóa Stock thành công!");
                                 plugin.getBazaarConfig().getProductCategoryMenuConfiguration().getMenu(product.getProductCategory(), true).open(p);
                             })
-                            .item(ItemBuilder.newBuilder(Material.TNT)
-                                    .withName("§c§lXÓA CỔ PHIẾU")
-                                    .appendLore("§7Hành động này không thể hoàn tác.").appendLore("").appendLore("§4Bấm để XÓA NGAY LẬP TỨC!")
-                                    .build())
-                            .build());
+                            .item(ItemBuilder.newBuilder(Material.TNT).withName("§c§lXÓA STOCK").build()).build());
 
                     // Nút Quay lại (Slot 36)
                     g.setElement(36, Component.element()
                             .click(c -> plugin.getBazaarConfig().getProductCategoryMenuConfiguration().getMenu(product.getProductCategory(), true).open(p))
-                            .item(ItemBuilder.newBuilder(Material.ARROW).withName("§aQuay lại").build())
-                            .build());
+                            .item(ItemBuilder.newBuilder(Material.ARROW).withName("§aQuay lại").build()).build());
 
-                    // Nút Đóng (Slot 40)
-                    g.setElement(40, Component.element()
-                            .click(c -> p.closeInventory())
-                            .item(ItemBuilder.newBuilder(Material.BARRIER).withName("§cĐóng").build())
-                            .build());
-
-                    ItemStack glass = ItemBuilder.newBuilder(Material.BLACK_STAINED_GLASS_PANE).withName(" ").build();
-                    g.fillElement(Component.element(glass).build());
+                    g.fillElement(Component.element(ItemBuilder.newBuilder(Material.BLACK_STAINED_GLASS_PANE).withName(" ").build()).build());
                 }).build();
-
         gui.open(player);
     }
 }

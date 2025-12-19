@@ -6,15 +6,22 @@ import me.math3w.bazaar.menu.MenuConfiguration;
 import me.zort.containr.*;
 import me.zort.containr.internal.util.ItemBuilder;
 import me.zort.containr.internal.util.Items;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.profile.PlayerProfile;
+import org.bukkit.profile.PlayerTextures;
 
 import java.lang.reflect.Field;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class MenuUtils {
     private MenuUtils() {
@@ -29,9 +36,7 @@ public class MenuUtils {
         for (Map.Entry<Integer, Element> slotElementEntry : getContainerElements(container).entrySet()) {
             int slot = slotElementEntry.getKey();
             Element element = slotElementEntry.getValue();
-
             if (slot != itemSlot) continue;
-
             container.setElement(itemSlot, Component.element(newItem).click(element::click).build());
             menuHistory.refreshGui(player);
             break;
@@ -39,15 +44,11 @@ public class MenuUtils {
     }
 
     private static Map<Integer, Element> getContainerElements(ContainerComponent container) {
-        if (!(container instanceof Container)) {
-            return container.content(null);
-        }
-
+        if (!(container instanceof Container)) return container.content(null);
         try {
             Field elementsField = Container.class.getDeclaredField("elements");
             elementsField.setAccessible(true);
-            Map<Integer, Element> elementMap = (Map<Integer, Element>) elementsField.get(container);
-            return elementMap;
+            return (Map<Integer, Element>) elementsField.get(container);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
@@ -55,9 +56,7 @@ public class MenuUtils {
 
     public static int getNextFreeSlot(PagedContainer container) {
         int slot = 0;
-        while (!container.isFreeSlot(slot)) {
-            slot++;
-        }
+        while (!container.isFreeSlot(slot)) slot++;
         return slot;
     }
 
@@ -69,12 +68,9 @@ public class MenuUtils {
                         setPagingArrows(menuConfiguration, gui, container, bazaarApi, player, previousSlot, nextSlot, edit);
                         gui.update(info.getPlayer());
                     })
-                    .item(Items.create(Material.ARROW, ChatColor.GREEN + "Trang Trước"))
-                    .build());
+                    .item(Items.create(Material.ARROW, ChatColor.GREEN + "Trang Trước")).build());
         } else {
-            menuConfiguration.getItems().stream().filter(item -> item.getSlot() == previousSlot).findAny().ifPresent(glassItem -> {
-                glassItem.putItem(gui, bazaarApi, player, null, edit);
-            });
+            menuConfiguration.getItems().stream().filter(item -> item.getSlot() == previousSlot).findAny().ifPresent(glassItem -> glassItem.putItem(gui, bazaarApi, player, null, edit));
         }
 
         if (container.getCurrentPageIndex() < container.getMaxPageIndex()) {
@@ -84,29 +80,36 @@ public class MenuUtils {
                         setPagingArrows(menuConfiguration, gui, container, bazaarApi, player, previousSlot, nextSlot, edit);
                         gui.update(info.getPlayer());
                     })
-                    .item(Items.create(Material.ARROW, ChatColor.GREEN + "Trang Sau"))
-                    .build());
+                    .item(Items.create(Material.ARROW, ChatColor.GREEN + "Trang Sau")).build());
         } else {
-            menuConfiguration.getItems().stream().filter(item -> item.getSlot() == nextSlot).findAny().ifPresent(glassItem -> {
-                glassItem.putItem(gui, bazaarApi, player, null, edit);
-            });
+            menuConfiguration.getItems().stream().filter(item -> item.getSlot() == nextSlot).findAny().ifPresent(glassItem -> glassItem.putItem(gui, bazaarApi, player, null, edit));
         }
     }
 
+    // [FIX] Tạo đầu cầu thủ an toàn cho 1.21.1
     public static ItemStack getPlusSkull(String name) {
-        return Items.createSkull(name, "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNjBiNTVmNzQ2ODFjNjgyODNhMWMxY2U1MWYxYzgzYjUyZTI5NzFjOTFlZTM0ZWZjYjU5OGRmMzk5MGE3ZTcifX19");
-    }
-
-    public static ItemStack appendEditLore(ItemStack item, boolean shouldAppend) {
-        return appendEditLore(item, shouldAppend, false);
-    }
-
-    public static ItemStack appendEditLore(ItemStack item, boolean shouldAppend, boolean removable) {
-        List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.AQUA + "Phải chuột để chỉnh sửa!");
-        if (removable) {
-            lore.add(ChatColor.DARK_AQUA + "Chuột giữa để xóa!");
+        ItemStack skull = new ItemStack(Material.PLAYER_HEAD);
+        SkullMeta meta = (SkullMeta) skull.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(Utils.colorize(name));
+            String urlString = "http://textures.minecraft.net/texture/b056683885b0376813c4ee87dfc5e534fc48fee3049ba1130da1f7df290";
+            PlayerProfile profile = Bukkit.createPlayerProfile(UUID.randomUUID());
+            PlayerTextures textures = profile.getTextures();
+            try { textures.setSkin(new URL(urlString)); } catch (MalformedURLException ignored) {}
+            profile.setTextures(textures);
+            meta.setOwnerProfile(profile);
+            skull.setItemMeta(meta);
         }
-        return shouldAppend ? ItemBuilder.newBuilder(item).appendLore(lore).build() : item;
+        return skull;
+    }
+
+    public static ItemStack appendEditLore(ItemStack item, boolean shouldAppend) { return appendEditLore(item, shouldAppend, false); }
+    public static ItemStack appendEditLore(ItemStack item, boolean shouldAppend, boolean removable) {
+        if (!shouldAppend) return item;
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.AQUA + "Chuột Trái: Mở danh mục");
+        lore.add(ChatColor.YELLOW + "Chuột Phải: Sửa thông tin");
+        if (removable) lore.add(ChatColor.RED + "Chuột Giữa: Xóa Stock");
+        return ItemBuilder.newBuilder(item).appendLore(lore).build();
     }
 }

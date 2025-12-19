@@ -7,14 +7,12 @@ import me.math3w.bazaar.bazaar.product.ProductConfiguration;
 import me.math3w.bazaar.bazaar.productcategory.ProductCategoryConfiguration;
 import me.math3w.bazaar.menu.configurations.*;
 import me.math3w.bazaar.utils.Utils;
-import me.zort.containr.internal.util.ItemBuilder;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
-import me.math3w.bazaar.menu.configurations.ProductMenuConfiguration;
-import me.math3w.bazaar.menu.configurations.ProductCategoryMenuConfiguration;
-import me.math3w.bazaar.menu.configurations.PortfolioMenuConfiguration;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -28,48 +26,18 @@ public class BazaarConfig extends CustomConfig {
     @Override
     protected void addDefaults() {
         addDefaultCategories();
-
         addDefault("portfolio-menu", PortfolioMenuConfiguration.createDefaultConfiguration());
         addDefault("pending-orders-menu", PendingOrdersMenuConfiguration.createDefaultConfiguration());
+        addDefault("product-category-menu", ProductCategoryMenuConfiguration.createDefaultProductCategoryConfiguration("&eDanh mục", 6));
     }
 
     private void addDefaultCategories() {
         ArrayList<CategoryConfiguration> categories = new ArrayList<>();
-
-        categories.add(createDefaultCategory(
-                Material.PAPER,
-                "&eTrại Trẻ Nhà Họ Lạc",
-                XMaterial.YELLOW_STAINED_GLASS_PANE.parseItem(),
-                getTraiTreNhaHoLacCategories()
-        ));
-
-        categories.add(createDefaultCategory(
-                Material.PAPER,
-                "&bNhà Sách Hảo Tâm",
-                XMaterial.CYAN_STAINED_GLASS_PANE.parseItem(),
-                getNhaSachHaoTamCategories()
-        ));
-
-        categories.add(createDefaultCategory(
-                Material.PAPER,
-                "&cThần Vệ Giới",
-                XMaterial.RED_STAINED_GLASS_PANE.parseItem(),
-                getNoiThanVeGheChoiCategories()
-        ));
-
-        categories.add(createDefaultCategory(
-                Material.PAPER,
-                "&6Tam Thập Lục Giới",
-                XMaterial.ORANGE_STAINED_GLASS_PANE.parseItem(),
-                getVungDatTamThapLucCategories()
-        ));
-
-        categories.add(createDefaultCategory(
-                Material.PAPER,
-                "&dHạ Đường Huyết Giới",
-                XMaterial.PINK_STAINED_GLASS_PANE.parseItem(),
-                getTheGioiHaDuongHuyetCategories()
-        ));
+        categories.add(createDefaultCategory(Material.PAPER, "&eTrại Trẻ Nhà Họ Lạc", XMaterial.YELLOW_STAINED_GLASS_PANE.parseItem(), getTraiTreNhaHoLacCategories()));
+        categories.add(createDefaultCategory(Material.PAPER, "&bNhà Sách Hảo Tâm", XMaterial.CYAN_STAINED_GLASS_PANE.parseItem(), getNhaSachHaoTamCategories()));
+        categories.add(createDefaultCategory(Material.PAPER, "&cThần Vệ Giới", XMaterial.RED_STAINED_GLASS_PANE.parseItem(), getNoiThanVeGheChoiCategories()));
+        categories.add(createDefaultCategory(Material.PAPER, "&6Tam Thập Lục Giới", XMaterial.ORANGE_STAINED_GLASS_PANE.parseItem(), getVungDatTamThapLucCategories()));
+        categories.add(createDefaultCategory(Material.PAPER, "&dHạ Đường Huyết Giới", XMaterial.PINK_STAINED_GLASS_PANE.parseItem(), getTheGioiHaDuongHuyetCategories()));
 
         addDefault("categories", categories);
         addDefault("search-menu", SearchMenuConfiguration.createDefaultConfiguration(ChatColor.GREEN + "Vạn Bảo Phiếu ➜ Tìm kiếm", XMaterial.LIME_STAINED_GLASS_PANE.parseItem()));
@@ -80,82 +48,52 @@ public class BazaarConfig extends CustomConfig {
         addDefault("orders", OrdersMenuConfiguration.createDefaultConfiguration());
     }
 
+    // [Dữ liệu Categories cũ - Giữ nguyên]
     private List<ProductCategoryConfiguration> getTraiTreNhaHoLacCategories() {
-        return Collections.singletonList(
-                getProductCategoryConfiguration(Material.PAPER, "Vật Phẩm", new ProductConfiguration[]{
-                        getProductConfiguration(Material.PAPER, "Sushi", 100.0),
-                        getProductConfiguration(Material.PAPER, "Sushi Thôn Hải", 100.0),
-                        getProductConfiguration(Material.PAPER, "Hồng Sắc Bảo Thạch", 100.0),
-                        getProductConfiguration(Material.PAPER, "Lạc Hoàng Tệ", 100.0),
-                        getProductConfiguration(Material.PAPER, "Thần Lôi Tinh Tủy", 100.0),
-                        getProductConfiguration(Material.PAPER, "Ám Chu Tri", 100.0),
-                        getProductConfiguration(Material.PAPER, "Chu Tri Độc Nang", 100.0)
-                }, ChatColor.YELLOW)
-        );
+        return Collections.singletonList(getProductCategoryConfiguration(Material.PAPER, "Vật Phẩm", new ProductConfiguration[]{
+                getProductConfiguration(Material.PAPER, "Sushi", 100.0), getProductConfiguration(Material.PAPER, "Sushi Thôn Hải", 100.0),
+                getProductConfiguration(Material.PAPER, "Hồng Sắc Bảo Thạch", 100.0), getProductConfiguration(Material.PAPER, "Lạc Hoàng Tệ", 100.0),
+                getProductConfiguration(Material.PAPER, "Thần Lôi Tinh Tủy", 100.0), getProductConfiguration(Material.PAPER, "Ám Chu Tri", 100.0),
+                getProductConfiguration(Material.PAPER, "Chu Tri Độc Nang", 100.0)
+        }, ChatColor.YELLOW));
     }
 
     private List<ProductCategoryConfiguration> getNhaSachHaoTamCategories() {
-        return Collections.singletonList(
-                getProductCategoryConfiguration(Material.PAPER, "Vật Phẩm", new ProductConfiguration[]{
-                        getProductConfiguration(Material.PAPER, "Minh Lam Tử Sa", 100.0),
-                        getProductConfiguration(Material.PAPER, "Linh Quy Hạch", 100.0),
-                        getProductConfiguration(Material.PAPER, "Nội Công", 100.0),
-                        getProductConfiguration(Material.PAPER, "Vạn Niên Mộc Đằng", 100.0),
-                        getProductConfiguration(Material.PAPER, "Cổ Hỏa Hồn Thạch", 100.0),
-                        getProductConfiguration(Material.PAPER, "Vạn Niên Huyền Thiết", 100.0),
-                        getProductConfiguration(Material.PAPER, "Thần Tinh Kim Thiết", 100.0),
-                        getProductConfiguration(Material.PAPER, "Đại Luyện Khí Lực Đan", 100.0),
-                        getProductConfiguration(Material.PAPER, "Dẫn Linh Đan", 100.0),
-                        getProductConfiguration(Material.PAPER, "Linh Khí Thạch", 100.0)
-                }, ChatColor.AQUA)
-        );
+        return Collections.singletonList(getProductCategoryConfiguration(Material.PAPER, "Vật Phẩm", new ProductConfiguration[]{
+                getProductConfiguration(Material.PAPER, "Minh Lam Tử Sa", 100.0), getProductConfiguration(Material.PAPER, "Linh Quy Hạch", 100.0),
+                getProductConfiguration(Material.PAPER, "Nội Công", 100.0), getProductConfiguration(Material.PAPER, "Vạn Niên Mộc Đằng", 100.0),
+                getProductConfiguration(Material.PAPER, "Cổ Hỏa Hồn Thạch", 100.0), getProductConfiguration(Material.PAPER, "Vạn Niên Huyền Thiết", 100.0),
+                getProductConfiguration(Material.PAPER, "Thần Tinh Kim Thiết", 100.0), getProductConfiguration(Material.PAPER, "Đại Luyện Khí Lực Đan", 100.0),
+                getProductConfiguration(Material.PAPER, "Dẫn Linh Đan", 100.0), getProductConfiguration(Material.PAPER, "Linh Khí Thạch", 100.0)
+        }, ChatColor.AQUA));
     }
 
     private List<ProductCategoryConfiguration> getNoiThanVeGheChoiCategories() {
-        return Collections.singletonList(
-                getProductCategoryConfiguration(Material.PAPER, "Vật Phẩm", new ProductConfiguration[]{
-                        getProductConfiguration(Material.PAPER, "Hư Không Tàn Phiến", 100.0),
-                        getProductConfiguration(Material.PAPER, "Hư Không Thạch", 100.0),
-                        getProductConfiguration(Material.PAPER, "Hư Không Tâm Hoả", 100.0)
-                }, ChatColor.RED)
-        );
+        return Collections.singletonList(getProductCategoryConfiguration(Material.PAPER, "Vật Phẩm", new ProductConfiguration[]{
+                getProductConfiguration(Material.PAPER, "Hư Không Tàn Phiến", 100.0), getProductConfiguration(Material.PAPER, "Hư Không Thạch", 100.0),
+                getProductConfiguration(Material.PAPER, "Hư Không Tâm Hoả", 100.0)
+        }, ChatColor.RED));
     }
 
     private List<ProductCategoryConfiguration> getVungDatTamThapLucCategories() {
-        return Collections.singletonList(
-                getProductCategoryConfiguration(Material.PAPER, "Vật Phẩm", new ProductConfiguration[]{
-                        getProductConfiguration(Material.PAPER, "Vạn Binh Thạch", 100.0),
-                        getProductConfiguration(Material.PAPER, "Cửu Thiên Kiếm Châu", 100.0),
-                        getProductConfiguration(Material.PAPER, "Cửu Thiên Kiếm Tinh", 100.0),
-                        getProductConfiguration(Material.PAPER, "Thất Dục Cô Thạch", 100.0)
-                }, ChatColor.GOLD)
-        );
+        return Collections.singletonList(getProductCategoryConfiguration(Material.PAPER, "Vật Phẩm", new ProductConfiguration[]{
+                getProductConfiguration(Material.PAPER, "Vạn Binh Thạch", 100.0), getProductConfiguration(Material.PAPER, "Cửu Thiên Kiếm Châu", 100.0),
+                getProductConfiguration(Material.PAPER, "Cửu Thiên Kiếm Tinh", 100.0), getProductConfiguration(Material.PAPER, "Thất Dục Cô Thạch", 100.0)
+        }, ChatColor.GOLD));
     }
 
     private List<ProductCategoryConfiguration> getTheGioiHaDuongHuyetCategories() {
-        return Collections.singletonList(
-                getProductCategoryConfiguration(Material.PAPER, "Vật Phẩm", new ProductConfiguration[]{
-                        getProductConfiguration(Material.PAPER, "Hàn Băng Tích Thuỷ", 100.0),
-                        getProductConfiguration(Material.PAPER, "Sushi Thôn Hải Băng Kình", 100.0),
-                        getProductConfiguration(Material.PAPER, "Thanh Vân Kiếm Thiết", 100.0)
-                }, ChatColor.LIGHT_PURPLE)
-        );
+        return Collections.singletonList(getProductCategoryConfiguration(Material.PAPER, "Vật Phẩm", new ProductConfiguration[]{
+                getProductConfiguration(Material.PAPER, "Hàn Băng Tích Thuỷ", 100.0), getProductConfiguration(Material.PAPER, "Sushi Thôn Hải Băng Kình", 100.0),
+                getProductConfiguration(Material.PAPER, "Thanh Vân Kiếm Thiết", 100.0)
+        }, ChatColor.LIGHT_PURPLE));
     }
 
+    // [FIX] Khôi phục các phương thức quản lý cho CategoryCommand và StockCommand
     public void addCategory(String name, ItemStack icon) {
         List<CategoryConfiguration> categories = getCategories();
-        ProductCategoryConfiguration defaultSubCat = getProductCategoryConfiguration(
-                new ItemStack(Material.CHEST),
-                "General",
-                new ProductConfiguration[]{},
-                ChatColor.WHITE
-        );
-        categories.add(createDefaultCategory(
-                icon,
-                name,
-                XMaterial.BLACK_STAINED_GLASS_PANE.parseItem(),
-                new ArrayList<>(Collections.singletonList(defaultSubCat))
-        ));
+        ProductCategoryConfiguration defaultSubCat = getProductCategoryConfiguration(new ItemStack(Material.CHEST), "General", new ProductConfiguration[]{}, ChatColor.WHITE);
+        categories.add(createDefaultCategory(icon, name, XMaterial.BLACK_STAINED_GLASS_PANE.parseItem(), new ArrayList<>(Collections.singletonList(defaultSubCat))));
         set("categories", categories);
         save();
     }
@@ -169,138 +107,63 @@ public class BazaarConfig extends CustomConfig {
 
     public void addProductToCategory(String categoryName, ProductConfiguration product) {
         List<CategoryConfiguration> categories = getCategories();
-        boolean found = false;
-
         for (CategoryConfiguration cat : categories) {
             if (ChatColor.stripColor(Utils.colorize(cat.getName())).equalsIgnoreCase(categoryName)) {
                 if (!cat.getProductCategories().isEmpty()) {
                     ProductCategoryConfiguration subCat = cat.getProductCategories().get(0);
                     subCat.getProducts().add(product);
                     subCat.getMenuConfig().addSlotForNewProduct();
-                } else {
-                    ProductCategoryConfiguration newSubCat = getProductCategoryConfiguration(
-                            new ItemStack(Material.CHEST),
-                            "General",
-                            new ProductConfiguration[]{product},
-                            ChatColor.WHITE
-                    );
-                    newSubCat.getMenuConfig().addSlotForNewProduct();
-                    cat.getProductCategories().add(newSubCat);
                 }
-                found = true;
                 break;
             }
         }
-
-        if (found) {
-            set("categories", categories);
-            save();
-        }
+        set("categories", categories);
+        save();
     }
 
     public void removeProduct(String productId) {
         List<CategoryConfiguration> categories = getCategories();
         boolean changed = false;
-
         for (CategoryConfiguration cat : categories) {
             for (ProductCategoryConfiguration subCat : cat.getProductCategories()) {
-                boolean removed = subCat.getProducts().removeIf(p ->
-                        ChatColor.stripColor(Utils.colorize(p.getName()))
-                                .replace(" ", "_")
-                                .toLowerCase()
-                                .equals(productId)
-                );
-
-                if (removed) {
+                if (subCat.getProducts().removeIf(p -> ChatColor.stripColor(Utils.colorize(p.getName())).replace(" ", "_").toLowerCase().equals(productId))) {
                     List<Integer> slots = subCat.getMenuConfig().getProductSlots();
-                    if (!slots.isEmpty()) {
-                        slots.remove(slots.size() - 1);
-                    }
+                    if (!slots.isEmpty()) slots.remove(slots.size() - 1);
                     changed = true;
                 }
             }
         }
+        if (changed) { set("categories", categories); save(); }
+    }
 
-        if (changed) {
-            set("categories", categories);
-            save();
+    private ItemStack safeBuild(ItemStack base, String name, String... lore) {
+        ItemStack item = base.clone();
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(Utils.colorize(name));
+            List<String> loreList = new ArrayList<>();
+            for (String line : lore) if (line != null && !line.isEmpty()) loreList.add(Utils.colorize(line));
+            meta.setLore(loreList);
+            item.setItemMeta(meta);
         }
+        return item;
     }
-
-    public PortfolioMenuConfiguration getPortfolioMenuConfiguration() {
-        return (PortfolioMenuConfiguration) getConfig().get("portfolio-menu");
-    }
-
-    public PendingOrdersMenuConfiguration getPendingOrdersMenuConfiguration() {
-        return (PendingOrdersMenuConfiguration) getConfig().get("pending-orders-menu");
-    }
-
 
     private CategoryConfiguration createDefaultCategory(ItemStack icon, String name, ItemStack glass, List<ProductCategoryConfiguration> productCategories) {
         String colorizedName = Utils.colorize(name);
-        return new CategoryConfiguration(getDefaultMenuConfiguration(colorizedName, glass),
-                ItemBuilder.newBuilder(icon)
-                        .withName(colorizedName)
-                        .appendLore(ChatColor.DARK_GRAY + "Danh mục", "", ChatColor.YELLOW + "Bấm để xem danh mục!")
-                        .build(),
-                name,
-                productCategories);
+        return new CategoryConfiguration(getDefaultMenuConfiguration(colorizedName, glass), safeBuild(icon, colorizedName, ChatColor.DARK_GRAY + "Danh mục", "", ChatColor.YELLOW + "Bấm để xem danh mục!"), name, productCategories);
     }
+    private CategoryConfiguration createDefaultCategory(Material icon, String name, ItemStack glass, List<ProductCategoryConfiguration> productCategories) { return createDefaultCategory(new ItemStack(icon), name, glass, productCategories); }
+    private CategoryMenuConfiguration getDefaultMenuConfiguration(String categoryName, ItemStack glass) { return CategoryMenuConfiguration.createDefaultConfiguration(ChatColor.getLastColors(categoryName) + "Vạn Bảo Phiếu ➜ " + categoryName, glass); }
+    public ProductCategoryConfiguration getProductCategoryConfiguration(ItemStack icon, String name, ProductConfiguration[] products, ChatColor color) { return new ProductCategoryConfiguration(ProductCategoryMenuConfiguration.createDefaultProductCategoryConfiguration(name, products.length), safeBuild(icon, color + name, "%productcategory-lore%", "", ChatColor.YELLOW + "Bấm để xem chi tiết"), name, Arrays.asList(products)); }
+    public ProductCategoryConfiguration getProductCategoryConfiguration(Material icon, String name, ProductConfiguration[] products, ChatColor color) { return getProductCategoryConfiguration(new ItemStack(icon), name, products, color); }
+    public ProductConfiguration getProductConfiguration(Material material, String name, double price) { ItemStack item = new ItemStack(material); return new ProductConfiguration(item, safeBuild(item, name, "", "%product-lore%", "", ChatColor.YELLOW + "Bấm để xem chi tiết!"), name, price); }
+    public ProductConfiguration getProductConfiguration(ItemStack item, String name) { return new ProductConfiguration(item, safeBuild(item, name, "", "%product-lore%", "", ChatColor.YELLOW + "Bấm để xem chi tiết!"), name, 10.0); }
+    private ItemStack getDefaultProductCategoryIcon(ItemStack icon, String name) { return safeBuild(icon, name, "%productcategory-lore%", "", ChatColor.YELLOW + "Bấm để xem chi tiết"); }
 
-    private CategoryConfiguration createDefaultCategory(Material icon, String name, ItemStack glass, List<ProductCategoryConfiguration> productCategories) {
-        return createDefaultCategory(new ItemStack(icon), name, glass, productCategories);
-    }
-
-    private CategoryMenuConfiguration getDefaultMenuConfiguration(String categoryName, ItemStack glass) {
-        return CategoryMenuConfiguration.createDefaultConfiguration(ChatColor.getLastColors(categoryName) + "Vạn Bảo Phiếu ➜ " + categoryName, glass);
-    }
-
-    public ProductCategoryConfiguration getProductCategoryConfiguration(Material icon, String name, ProductConfiguration[] products, ChatColor color) {
-        return getProductCategoryConfiguration(new ItemStack(icon), name, products, color);
-    }
-
-    public ProductCategoryConfiguration getProductCategoryConfiguration(ItemStack icon, String name, ProductConfiguration[] products, ChatColor color) {
-        return new ProductCategoryConfiguration(ProductCategoryMenuConfiguration.createDefaultProductCategoryConfiguration(name, products.length),
-                getDefaultProductCategoryIcon(icon, color + name),
-                name,
-                Arrays.asList(products));
-    }
-
-    public ProductConfiguration getProductConfiguration(Material material, String name, double price) {
-        return new ProductConfiguration(
-                new ItemStack(material),
-                ItemBuilder.newBuilder(material)
-                        .withName(name)
-                        .appendLore("")
-                        .appendLore("%product-lore%")
-                        .appendLore("")
-                        .appendLore(ChatColor.YELLOW + "Bấm để xem chi tiết!")
-                        .build(),
-                name,
-                price
-        );
-    }
-
-    public ProductConfiguration getProductConfiguration(ItemStack item, String name) {
-        return new ProductConfiguration(item,
-                ItemBuilder.newBuilder(item)
-                        .appendLore("")
-                        .appendLore("%product-lore%")
-                        .appendLore("")
-                        .appendLore(ChatColor.YELLOW + "Bấm để xem chi tiết!")
-                        .build(),
-                name, 10.0);
-    }
-
-    private ItemStack getDefaultProductCategoryIcon(ItemStack icon, String name) {
-        return ItemBuilder.newBuilder(icon)
-                .withName(name)
-                .appendLore("%productcategory-lore%")
-                .appendLore("")
-                .appendLore(ChatColor.YELLOW + "Bấm để xem chi tiết")
-                .build();
-    }
-
+    public PortfolioMenuConfiguration getPortfolioMenuConfiguration() { return (PortfolioMenuConfiguration) getConfig().get("portfolio-menu"); }
+    public PendingOrdersMenuConfiguration getPendingOrdersMenuConfiguration() { return (PendingOrdersMenuConfiguration) getConfig().get("pending-orders-menu"); }
+    public ProductCategoryMenuConfiguration getProductCategoryMenuConfiguration() { return (ProductCategoryMenuConfiguration) getConfig().get("product-category-menu"); }
     public SearchMenuConfiguration getSearchMenuConfiguration() { return (SearchMenuConfiguration) getConfig().get("search-menu"); }
     public ProductMenuConfiguration getProductMenuConfiguration() { return (ProductMenuConfiguration) getConfig().get("product-menu"); }
     public ConfirmationMenuConfiguration getConfirmationMenuConfiguration(OrderType orderType) { return (ConfirmationMenuConfiguration) getConfig().get("confirm-" + orderType.name().toLowerCase() + "-menu"); }

@@ -20,7 +20,9 @@ dependencies {
     implementation 'com.github.ZorTik:ContainrGUI:0.7-pre2'
     implementation 'de.rapha149.signgui:signgui:2.5.4'
 
-    implementation 'de.tr7zw:item-nbt-api:2.14.1'
+    // Chuyển sang compileOnly để dùng bản cài sẵn trên server
+    compileOnly 'de.tr7zw:item-nbt-api:2.14.1'
+
     implementation("com.github.cryptomorin:XSeries:9.5.0")
     compileOnly "com.github.MilkBowl:VaultAPI:1.7"
 }

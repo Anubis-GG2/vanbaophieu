@@ -77,16 +77,16 @@ public class MessageInputManager {
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i);
             player.spigot().sendMessage(new TextComponent(line + " "),
-                    Utils.createClickableText(ChatColor.GRAY + "[" + ChatColor.RED + "-" + ChatColor.GRAY + "]", "bazaaredit lore remove " + i),
+                    Utils.createClickableText(ChatColor.GRAY + "[" + ChatColor.RED + "-" + ChatColor.GRAY + "]", "vanbaophieuedit lore remove " + i),
                     new TextComponent(" "),
-                    Utils.createClickableText(ChatColor.GRAY + "[" + ChatColor.AQUA + "✎" + ChatColor.GRAY + "]", "bazaaredit lore edit " + i));
+                    Utils.createClickableText(ChatColor.GRAY + "[" + ChatColor.AQUA + "✎" + ChatColor.GRAY + "]", "vanbaophieuedit lore edit " + i));
         }
 
         player.sendMessage("");
 
-        player.spigot().sendMessage(Utils.createClickableText(ChatColor.GREEN + "Add Line", "bazaaredit lore add"),
+        player.spigot().sendMessage(Utils.createClickableText(ChatColor.GREEN + "Add Line", "vanbaophieuedit lore add"),
                 new TextComponent(" | "),
-                Utils.createClickableText(ChatColor.GREEN + "Confirm", "bazaaredit lore confirm"));
+                Utils.createClickableText(ChatColor.GREEN + "Confirm", "vanbaophieuedit lore confirm"));
     }
 
     public boolean isWaitingForOneLineInput(Player player) {

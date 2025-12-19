@@ -1,59 +1,72 @@
 package me.math3w.bazaar.bazaar.product;
 
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.bukkit.configuration.serialization.SerializableAs;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
+@SerializableAs("ProductConfiguration")
 public class ProductConfiguration implements ConfigurationSerializable {
+    private String name;
     private ItemStack item;
     private ItemStack icon;
-    private String name;
-    // [NEW] Thêm trường giá gốc
     private double price;
+    private int supply;
 
-    public ProductConfiguration(ItemStack item, ItemStack icon, String name, double price) {
+    // Constructor chính
+    public ProductConfiguration(String name, ItemStack item, ItemStack icon, double price, int supply) {
+        this.name = name;
         this.item = item;
         this.icon = icon;
-        this.name = name;
         this.price = price;
+        this.supply = supply;
     }
 
-    public ProductConfiguration(ItemStack item, ItemStack icon, String name) {
-        this(item, icon, name, 10.0);
+    // [FIX] Constructor tương thích ngược cho BazaarConfig (cấu trúc 1)
+    public ProductConfiguration(ItemStack item, ItemStack icon, String name, double price) {
+        this(name, item, icon, price, 100000);
+    }
+
+    // [FIX] Constructor tương thích ngược cho BazaarConfig (cấu trúc 2)
+    public ProductConfiguration(String name, ItemStack item, ItemStack icon, double price) {
+        this(name, item, icon, price, 100000);
+    }
+
+    public ProductConfiguration(ItemStack item, String name) {
+        this(name, item, item, 100.0, 100000);
     }
 
     public static ProductConfiguration deserialize(Map<String, Object> args) {
-        double price = args.containsKey("price") ? ((Number) args.get("price")).doubleValue() : 10.0;
+        String name = (String) args.get("name");
+        ItemStack item = (ItemStack) args.get("item");
+        ItemStack icon = (ItemStack) args.get("icon");
+        double price = (Double) args.get("price");
+        int supply = args.containsKey("supply") ? (Integer) args.get("supply") : 100000;
 
-        return new ProductConfiguration(
-                (ItemStack) args.get("item"),
-                (ItemStack) args.get("icon"),
-                (String) args.get("name"),
-                price
-        );
+        return new ProductConfiguration(name, item, icon, price, supply);
     }
 
+    @Override
+    public Map<String, Object> serialize() {
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put("name", name);
+        map.put("item", item);
+        map.put("icon", icon);
+        map.put("price", price);
+        map.put("supply", supply);
+        return map;
+    }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
     public ItemStack getItem() { return item; }
     public void setItem(ItemStack item) { this.item = item; }
     public ItemStack getIcon() { return icon; }
     public void setIcon(ItemStack icon) { this.icon = icon; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-
-    // [NEW] Getter & Setter cho giá
     public double getPrice() { return price; }
     public void setPrice(double price) { this.price = price; }
-
-    @Override
-    public Map<String, Object> serialize() {
-        Map<String, Object> args = new HashMap<>();
-        args.put("item", item);
-        args.put("icon", icon);
-        args.put("name", name);
-        // [NEW] Lưu giá vào file
-        args.put("price", price);
-        return args;
-    }
+    public int getSupply() { return supply; }
+    public void setSupply(int supply) { this.supply = supply; }
 }

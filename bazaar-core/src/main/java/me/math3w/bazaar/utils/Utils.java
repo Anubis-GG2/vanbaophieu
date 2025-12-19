@@ -10,7 +10,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.List;
+import java.util.Locale;
 
 public class Utils {
     private Utils() {
@@ -23,21 +25,17 @@ public class Utils {
 
     public static ItemStack getGlowedItem(ItemStack item) {
         ItemStack glowedItem = item.clone();
-
-        // SỬA LỖI TẠI ĐÂY: Đổi DURABILITY -> UNBREAKING
         glowedItem.addUnsafeEnchantment(Enchantment.UNBREAKING, 1);
-
         ItemMeta itemMeta = glowedItem.getItemMeta();
         if (itemMeta != null) {
             itemMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
             glowedItem.setItemMeta(itemMeta);
         }
-
         return glowedItem;
     }
 
     public static String getTextPrice(double price) {
-        return new DecimalFormat("#.#").format(price);
+        return formatNumber(price) + " Coins";
     }
 
     public static TextComponent createClickableText(String text, String command) {
@@ -50,15 +48,12 @@ public class Utils {
         double price = 0;
         for (int i = 0; i < orders.size(); i++) {
             BazaarOrder order = orders.get(i);
-
             if (i == orders.size() - 1) {
                 price += order.getUnitPrice() * getLastOrderFillAmount(orders, amount);
                 break;
             }
-
             price += order.getUnitPrice() * order.getOrderableItems();
         }
-
         return price;
     }
 
@@ -66,14 +61,26 @@ public class Utils {
         int currentAmount = 0;
         for (int i = 0; i < orders.size(); i++) {
             BazaarOrder order = orders.get(i);
-
             if (i == orders.size() - 1) {
                 return Math.min(amount - currentAmount, order.getOrderableItems());
             }
-
             currentAmount += order.getOrderableItems();
         }
-
         return orders.get(orders.size() - 1).getOrderableItems();
+    }
+
+    // [BỔ SUNG QUAN TRỌNG] Các hàm này bị thiếu trong file cũ
+    public static String formatNumber(double number) {
+        DecimalFormat formatter = new DecimalFormat("#,###.##", new DecimalFormatSymbols(Locale.US));
+        return formatter.format(number);
+    }
+
+    public static String formatNumber(long number) {
+        DecimalFormat formatter = new DecimalFormat("#,###", new DecimalFormatSymbols(Locale.US));
+        return formatter.format(number);
+    }
+
+    public static String formatNumber(int number) {
+        return formatNumber((long) number);
     }
 }

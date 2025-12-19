@@ -12,7 +12,9 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
-
+import me.math3w.bazaar.menu.configurations.ProductMenuConfiguration;
+import me.math3w.bazaar.menu.configurations.ProductCategoryMenuConfiguration;
+import me.math3w.bazaar.menu.configurations.PortfolioMenuConfiguration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;

@@ -10,6 +10,7 @@ import me.math3w.bazaar.utils.Utils;
 import me.zort.containr.ContainerComponent;
 import me.zort.containr.internal.util.ItemBuilder;
 import me.zort.containr.internal.util.Pair;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -53,53 +54,32 @@ public class ProductImpl implements Product {
     public ProductCategory getProductCategory() { return productCategory; }
 
     @Override
-    public double getCurrentPrice() {
-        return 0;
-    }
-
+    public double getCurrentPrice() { return 0; }
     @Override
-    public void setCurrentPrice(double price) {
-
-    }
-
+    public void setCurrentPrice(double price) { }
     @Override
-    public double getBasePrice() {
-        return 0;
-    }
-
+    public double getBasePrice() { return 0; }
     @Override
-    public void setBasePrice(double basePrice) {
+    public void setBasePrice(double basePrice) { }
 
-    }
-
+    // [NEW] Supply Logic
     @Override
-    public long getCirculatingSupply() {
-        return 0;
-    }
-
+    public long getCirculatingSupply() { return config.getSupply(); }
     @Override
     public void modifyCirculatingSupply(long delta) {
-
+        config.setSupply((int) (config.getSupply() + delta));
+        productCategory.getCategory().getBazaar().saveConfig();
     }
 
     @Override
-    public List<Double> getPriceHistory() {
-        return priceHistory;
-    }
-
+    public List<Double> getPriceHistory() { return priceHistory; }
     @Override
     public void addHistoryPoint(double price) {
         priceHistory.add(price);
-        if (priceHistory.size() > 100) {
-            priceHistory.remove(0);
-        }
+        if (priceHistory.size() > 100) priceHistory.remove(0);
     }
-
     @Override
-    public List<StockCandle> getCandleHistory() {
-        return Collections.unmodifiableList(candleHistory);
-    }
-
+    public List<StockCandle> getCandleHistory() { return Collections.unmodifiableList(candleHistory); }
     @Override
     public void addCandle(StockCandle candle) {
         candleHistory.add(candle);
@@ -116,10 +96,29 @@ public class ProductImpl implements Product {
     public ItemStack getIcon(ContainerComponent container, int itemSlot, Player player) {
         BazaarAPI bazaarApi = getBazaarApi();
         BazaarPlugin plugin = (BazaarPlugin) bazaarApi;
+
+        // Clone item gốc để giữ Model
         ItemStack icon = config.getIcon().clone();
 
         double buyPrice = plugin.getMarketTicker().getCurrentPrice(this);
         double sellPrice = plugin.getMarketTicker().getSellPrice(this);
+
+        // [FIX] Thêm thông tin giá và supply vào Lore
+        ItemMeta meta = icon.getItemMeta();
+        if (meta != null) {
+            List<String> lore = meta.hasLore() ? meta.getLore() : new ArrayList<>();
+            // Xóa lore cũ nếu có để tránh duplicate khi update liên tục (tùy chọn)
+            // lore.clear();
+
+            lore.add("§8§m------------------------");
+            lore.add("§7Giá Mua: §a" + Utils.getTextPrice(buyPrice));
+            lore.add("§7Giá Bán: §c" + Utils.getTextPrice(sellPrice) + " §7(-5% Phí)");
+            lore.add("§7Tổng Cung: §b" + Utils.formatNumber(getCirculatingSupply()));
+            lore.add("§8§m------------------------");
+
+            meta.setLore(lore);
+            icon.setItemMeta(meta);
+        }
 
         return replaceLorePlaceholders(icon,
                 new MessagePlaceholder("buy-price", Utils.getTextPrice(buyPrice)),
@@ -158,23 +157,8 @@ public class ProductImpl implements Product {
                 new MessagePlaceholder("product", getName()));
     }
 
-    @Override
-    public CompletableFuture<Double> getLowestBuyPrice() {
-        return CompletableFuture.supplyAsync(() -> ((BazaarPlugin)getBazaarApi()).getMarketTicker().getCurrentPrice(this));
-    }
-
-    @Override
-    public CompletableFuture<Double> getHighestSellPrice() {
-        return CompletableFuture.supplyAsync(() -> ((BazaarPlugin)getBazaarApi()).getMarketTicker().getSellPrice(this));
-    }
-
-    @Override
-    public CompletableFuture<Pair<Double, Integer>> getBuyPriceWithOrderableAmount(int amount) {
-        return getLowestBuyPrice().thenApply(price -> new Pair<>(price * amount, amount));
-    }
-
-    @Override
-    public CompletableFuture<Pair<Double, Integer>> getSellPriceWithOrderableAmount(int amount) {
-        return getHighestSellPrice().thenApply(price -> new Pair<>(price * amount, amount));
-    }
-}
+    @Deprecated @Override public CompletableFuture<Double> getLowestBuyPrice() { return null; }
+    @Deprecated @Override public CompletableFuture<Double> getHighestSellPrice() { return null; }
+    @Deprecated @Override public CompletableFuture<Pair<Double, Integer>> getBuyPriceWithOrderableAmount(int amount) { return null; }
+    @Deprecated @Override public CompletableFuture<Pair<Double, Integer>> getSellPriceWithOrderableAmount(int amount) { return null; }
+}       

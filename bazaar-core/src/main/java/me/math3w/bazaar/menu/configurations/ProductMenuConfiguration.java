@@ -112,57 +112,32 @@ public class ProductMenuConfiguration extends MenuConfiguration implements Confi
                 );
             });
 
+            // [FIX] Sử dụng phương thức an toàn để bảo toàn Model Data
+            ItemStack icon = product.getIcon(gui, productSlot, player);
+            ItemStack clickableIcon = addClickLore(icon);
+
             gui.setElement(productSlot, Component.element()
                     .click(clickInfo -> {
-                        openTimeFrameMenu(player, product);
                     })
-                    .item(addClickLore(product.getIcon(gui, productSlot, player)))
+                    .item(clickableIcon)
                     .build());
 
         }).build();
     }
 
-    private void openTimeFrameMenu(Player player, Product product) {
-        Component.gui()
-                .title("Chọn Khung Thời Gian")
-                .rows(3)
-                .prepare((gui, p) -> {
-                    ItemStack glass = ItemBuilder.newBuilder(XMaterial.BLACK_STAINED_GLASS_PANE.parseItem()).withName(" ").build();
-                    gui.fillElement(Component.element(glass).build());
-
-                    int[] slots = {11, 12, 13, 14, 15};
-                    DiscordService.TimeFrame[] timeFrames = DiscordService.TimeFrame.values();
-
-                    for (int i = 0; i < timeFrames.length && i < slots.length; i++) {
-                        DiscordService.TimeFrame tf = timeFrames[i];
-                        gui.setElement(slots[i], Component.element()
-                                .item(ItemBuilder.newBuilder(Material.PAPER)
-                                        .withName(ChatColor.YELLOW + "Biểu đồ " + tf.name())
-                                        .appendLore("")
-                                        .appendLore(ChatColor.GREEN + "▶ Bấm để gửi về Discord")
-                                        .build())
-                                .click(c -> {
-                                    p.closeInventory();
-                                    p.sendMessage(ChatColor.YELLOW + "Đang tạo biểu đồ " + tf.name() + " và gửi về Discord...");
-                                    DiscordService.sendCandlestickChart(product, tf);
-                                })
-                                .build());
-                    }
-
-                    gui.setElement(22, Component.element()
-                            .item(ItemBuilder.newBuilder(Material.ARROW).withName(ChatColor.RED + "Quay lại").build())
-                            .click(c -> getMenu(product, false).open(p))
-                            .build());
-                })
-                .build()
-                .open(player);
-    }
-
+    // [FIX] Sử dụng Bukkit API thuần để không làm hỏng CustomModelData
     private ItemStack addClickLore(ItemStack item) {
-        return ItemBuilder.newBuilder(item)
-                .appendLore("")
-                .appendLore(ChatColor.AQUA + "▶ Bấm để chọn khung thời gian biểu đồ")
-                .build();
+        if (item == null) return null;
+        ItemStack clone = item.clone();
+        ItemMeta meta = clone.getItemMeta();
+        if (meta != null) {
+            List<String> lore = meta.hasLore() ? meta.getLore() : new ArrayList<>();
+            lore.add("");
+            lore.add(ChatColor.AQUA + "▶ Bấm để chọn khung thời gian biểu đồ");
+            meta.setLore(lore);
+            clone.setItemMeta(meta);
+        }
+        return clone;
     }
 
     private void overrideItem(GUI gui, BazaarPlugin plugin, org.bukkit.entity.Player player, Product product, int slot, java.util.function.Function<ItemStack, ItemStack> replacer) {

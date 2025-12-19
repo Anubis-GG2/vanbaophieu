@@ -10,4 +10,5 @@ public interface MenuConfig {
     String getString(String path, MessagePlaceholder... placeholders);
 
     ItemStack replaceLorePlaceholders(ItemStack icon, String placeholder, Placeholder... innerPlaceholders);
+
 }

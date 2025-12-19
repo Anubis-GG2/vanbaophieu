@@ -16,6 +16,7 @@ import org.bukkit.Material;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.configuration.serialization.SerializableAs;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,11 +55,8 @@ public class PortfolioMenuConfiguration extends OrdersMenuConfiguration implemen
             PagedContainer container = Component.pagedContainer().size(6, 4).init(c -> {
                 List<PortfolioTransaction> txs = plugin.getPortfolioManager().getTransactions(player.getUniqueId());
 
-                // Map lưu tổng số lượng cổ phiếu
                 Map<String, Integer> totalAmount = new HashMap<>();
-                // Map lưu số lượng đang bị khóa (chưa T+1)
                 Map<String, Integer> lockedAmount = new HashMap<>();
-                // Map lưu tổng chi phí vốn (Total Cost) để tính Lãi/Lỗ
                 Map<String, Double> totalCostMap = new HashMap<>();
 
                 for (PortfolioTransaction tx : txs) {
@@ -85,15 +83,13 @@ public class PortfolioMenuConfiguration extends OrdersMenuConfiguration implemen
                     int locked = lockedAmount.getOrDefault(productId, 0);
                     int available = total - locked;
 
-                    double currentPrice = plugin.getMarketTicker().getCurrentPrice(product);
-                    double totalCurrentValue = currentPrice * total;
+                    double sellPrice = plugin.getMarketTicker().getSellPrice(product);
+                    double currentNetValue = sellPrice * total;
 
-                    // Tính toán Lãi/Lỗ
                     double totalCost = totalCostMap.getOrDefault(productId, 0.0);
-                    // Giá mua trung bình
                     double avgBuyPrice = (total > 0) ? (totalCost / total) : 0;
 
-                    double profitValue = totalCurrentValue - totalCost;
+                    double profitValue = currentNetValue - totalCost;
                     double profitPercent = (totalCost > 0) ? ((profitValue / totalCost) * 100.0) : 0;
 
                     String profitString;
@@ -103,20 +99,26 @@ public class PortfolioMenuConfiguration extends OrdersMenuConfiguration implemen
                         profitString = "§cLỗ: " + Utils.getTextPrice(profitValue) + " (" + String.format("%.2f", profitPercent) + "%)";
                     }
 
-                    ItemStack icon = ItemBuilder.newBuilder(product.getItem())
-                            .withName(ChatColor.GREEN + product.getName())
-                            .appendLore("§7--------------------")
-                            .appendLore("§fTổng sở hữu: §a" + total)
-                            .appendLore("§fKhả dụng: §e" + available)
-                            .appendLore("§fĐang khóa (T+1): §c" + locked)
-                            .appendLore("")
-                            .appendLore("§7Giá thị trường: §6" + Utils.getTextPrice(currentPrice))
-                            .appendLore("§7Giá vốn TB: §7" + Utils.getTextPrice(avgBuyPrice))
-                            .appendLore("")
-                            .appendLore(profitString)
-                            .appendLore("§7--------------------")
-                            .appendLore(edit ? "" : "§eBấm để xem chi tiết lệnh")
-                            .build();
+                    ItemStack icon = product.getItem().clone();
+                    ItemMeta meta = icon.getItemMeta();
+                    if (meta != null) {
+                        List<String> lore = new ArrayList<>();
+                        lore.add("§8§m------------------------");
+                        lore.add("§fTổng sở hữu: §a" + Utils.formatNumber(total));
+                        lore.add("§fKhả dụng: §e" + Utils.formatNumber(available));
+                        lore.add("§fĐang khóa (T+1): §c" + Utils.formatNumber(locked));
+                        lore.add("");
+                        lore.add("§7Giá trị thực (Net): §6" + Utils.getTextPrice(currentNetValue));
+                        lore.add("§7Vốn bỏ ra: §7" + Utils.getTextPrice(totalCost));
+                        lore.add("§7Giá vốn TB: §7" + Utils.getTextPrice(avgBuyPrice));
+                        lore.add("");
+                        lore.add(profitString);
+                        lore.add("§8§m------------------------");
+                        if (!edit) lore.add("§eBấm để xem chi tiết lệnh");
+
+                        meta.setLore(lore);
+                        icon.setItemMeta(meta);
+                    }
 
                     c.appendElement(Component.element().item(icon).build());
                 }

@@ -34,6 +34,8 @@ import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import me.math3w.bazaar.menu.configurations.PendingOrdersMenuConfiguration;
+import me.math3w.bazaar.web.SimpleWebServer;
+import me.math3w.bazaar.utils.DataSeeder;
 
 public class BazaarPlugin extends JavaPlugin implements BazaarAPI {
     private Economy economy = null;
@@ -50,6 +52,7 @@ public class BazaarPlugin extends JavaPlugin implements BazaarAPI {
     private MessageInputManager messageInputManager;
     private MarketTicker marketTicker;
     private LiquidityService liquidityService;
+    private SimpleWebServer webServer;
 
     @Override
     public void onLoad() {
@@ -100,15 +103,21 @@ public class BazaarPlugin extends JavaPlugin implements BazaarAPI {
         menuHistory = new DefaultMenuHistory(this);
         editManager = new DefaultEditManager(this);
         messageInputManager = new MessageInputManager(this);
-
         Bukkit.getPluginManager().registerEvents(new MenuListeners(this), this);
+        this.webServer = new SimpleWebServer(this);
+        this.webServer.start();
+        getLogger().info("--- STOCK DASHBOARD STARTED ON PORT 8081 ---");
+        new DataSeeder(this).seedDefaults();
     }
 
     @Override
     public void onDisable() {
+        if (this.webServer != null) {
+            this.webServer.stop();
+        }
         if (marketTicker != null) marketTicker.stop();
         if (portfolioManager != null) {
-            portfolioManager.stop(); // Đóng kết nối Database an toàn
+            portfolioManager.stop();
         }
 
     }

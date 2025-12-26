@@ -8,6 +8,7 @@ import me.math3w.bazaar.api.bazaar.Category;
 import me.math3w.bazaar.api.bazaar.Product;
 import me.math3w.bazaar.api.bazaar.ProductCategory;
 import me.math3w.bazaar.api.edit.EditManager;
+import me.math3w.bazaar.bazaar.market.LiquidityService;
 import me.math3w.bazaar.bazaar.product.ProductConfiguration;
 import me.math3w.bazaar.bazaar.product.ProductImpl;
 import me.math3w.bazaar.bazaar.productcategory.ProductCategoryImpl;
@@ -22,6 +23,7 @@ import me.zort.containr.PagedContainer;
 import me.zort.containr.internal.util.ItemBuilder;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
@@ -41,7 +43,10 @@ public class CategoryMenuConfiguration extends MenuConfiguration {
         int[] glassSlots = new int[]{1, 2, 3, 4, 5, 6, 7, 8, 10, 17, 19, 26, 28, 35, 37, 44, 46, 48, 51, 52, 53};
         List<DefaultConfigurableMenuItem> items = new ArrayList<>();
         for (int glassSlot : glassSlots) {
-            items.add(new DefaultConfigurableMenuItem(glassSlot, ItemBuilder.newBuilder(glass).withName(ChatColor.WHITE.toString()).build(), ""));
+            // [UPDATE] Slot 46 (Hàng 6 ô 2) sẽ được ghi đè bởi Market Info, nhưng giữ default ở đây để tránh null nếu cần
+            if (glassSlot != 46) {
+                items.add(new DefaultConfigurableMenuItem(glassSlot, ItemBuilder.newBuilder(glass).withName(ChatColor.WHITE.toString()).build(), ""));
+            }
         }
         items.add(new DefaultConfigurableMenuItem(45, ItemBuilder.newBuilder(XMaterial.OAK_SIGN.parseItem()).withName(ChatColor.GREEN + "Search").appendLore(ChatColor.GRAY + "Tìm Cổ Phiếu theo tên!").build(), "search"));
         items.add(new DefaultConfigurableMenuItem(49, ItemBuilder.newBuilder(Material.BARRIER).withName(ChatColor.RED + "Đóng").build(), "close"));
@@ -75,6 +80,29 @@ public class CategoryMenuConfiguration extends MenuConfiguration {
                 }
             }).build());
 
+            // [NEW] Market Info Button tại slot 46
+            gui.setElement(46, Component.element()
+                    .item(Component.supply(() -> {
+                        LiquidityService liquidity = ((BazaarPlugin) bazaarApi).getLiquidityService();
+                        return ItemBuilder.newBuilder(Material.EMERALD)
+                                .withName("§a§lThông Tin Thị Trường")
+                                .appendLore("§7Thông tin tổng quan về thị trường")
+                                .appendLore("§7trong 24h qua.")
+                                .appendLore("")
+                                .appendLore("§7Tổng Market Cap: §e" + Utils.getTextPrice(liquidity.calculateMarketCap()))
+                                .appendLore("§7Quỹ Thanh Khoản: §6" + Utils.getTextPrice(liquidity.getAvailableLiquidity()))
+                                .appendLore("§7Tổng Mua (24h): §a" + Utils.getTextPrice(liquidity.getDailyBuyVolume()))
+                                .appendLore("§7Tổng Bán (24h): §c" + Utils.getTextPrice(liquidity.getDailySellVolume()))
+                                .appendLore("")
+                                .appendLore("§eBấm để cập nhật!")
+                                .build();
+                    }))
+                    .click(info -> {
+                        // Refresh GUI
+                        getMenu(selectedCategory, edit).open(player);
+                    })
+                    .build());
+
             PagedContainer productsContainer = Component.pagedContainer().size(6, 4).init(container -> {
 
                 for (ProductCategory productCategory : selectedCategory.getProductCategories()) {
@@ -96,8 +124,7 @@ public class CategoryMenuConfiguration extends MenuConfiguration {
                 }
 
                 if (edit) {
-                    // [FIX] Sử dụng getAddButton (Emerald) thay vì getPlusSkull
-                    container.appendElement(Component.element((MenuUtils.getAddButton(ChatColor.GREEN + "Thêm Cổ Phiếu")))
+                    container.appendElement(Component.element((MenuUtils.getPlusSkull(ChatColor.GREEN + "Thêm Cổ Phiếu")))
                             .click(clickInfo -> {
                                 BazaarConfig bazaarConfig = ((BazaarPlugin) bazaar.getBazaarApi()).getBazaarConfig();
                                 ProductConfiguration productConfiguration = bazaarConfig.getProductConfiguration(

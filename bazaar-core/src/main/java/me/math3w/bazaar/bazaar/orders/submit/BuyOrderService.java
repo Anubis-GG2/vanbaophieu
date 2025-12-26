@@ -1,5 +1,6 @@
 package me.math3w.bazaar.bazaar.orders.submit;
 
+import me.math3w.bazaar.BazaarPlugin;
 import me.math3w.bazaar.api.bazaar.Product;
 import me.math3w.bazaar.api.bazaar.orders.BazaarOrder;
 import me.math3w.bazaar.api.bazaar.orders.InstantBazaarOrder;
@@ -25,6 +26,13 @@ public class BuyOrderService implements OrderService {
         }
 
         economy.withdrawPlayer(player, price);
+
+        // [NEW] Ghi nhận Volume Mua vào LiquidityService
+        try {
+            BazaarPlugin plugin = (BazaarPlugin) product.getProductCategory().getCategory().getBazaar().getBazaarApi();
+            plugin.getLiquidityService().recordBuy(price);
+        } catch (Exception ignored) {}
+
         claim(order);
         return InstantSubmitResult.SUCCESS;
     }
@@ -41,6 +49,13 @@ public class BuyOrderService implements OrderService {
         }
 
         economy.withdrawPlayer(player, totalPrice);
+
+        // [NEW] Ghi nhận Volume Mua (cho lệnh chờ)
+        try {
+            BazaarPlugin plugin = (BazaarPlugin) product.getProductCategory().getCategory().getBazaar().getBazaarApi();
+            plugin.getLiquidityService().recordBuy(totalPrice);
+        } catch (Exception ignored) {}
+
         return SubmitResult.SUCCESS;
     }
 

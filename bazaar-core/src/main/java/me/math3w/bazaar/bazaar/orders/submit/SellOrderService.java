@@ -1,5 +1,6 @@
 package me.math3w.bazaar.bazaar.orders.submit;
 
+import me.math3w.bazaar.BazaarPlugin;
 import me.math3w.bazaar.api.bazaar.Bazaar;
 import me.math3w.bazaar.api.bazaar.Product;
 import me.math3w.bazaar.api.bazaar.orders.BazaarOrder;
@@ -78,6 +79,12 @@ public class SellOrderService implements OrderService {
 
         economy.depositPlayer(player, availableCoins);
 
+        // [NEW] Ghi nhận Volume Bán (Khi người chơi nhận tiền từ lệnh bán)
+        try {
+            BazaarPlugin plugin = (BazaarPlugin) order.getProduct().getProductCategory().getCategory().getBazaar().getBazaarApi();
+            plugin.getLiquidityService().recordSell(availableCoins);
+        } catch (Exception ignored) {}
+
         return order.getAvailableItems();
     }
 
@@ -87,6 +94,13 @@ public class SellOrderService implements OrderService {
         Economy economy = order.getProduct().getProductCategory().getCategory().getBazaar().getBazaarApi().getEconomy();
         double coins = order.getPrice();
         economy.depositPlayer(player, coins);
+
+        // [NEW] Ghi nhận Volume Bán (Bán ngay lập tức)
+        try {
+            BazaarPlugin plugin = (BazaarPlugin) order.getProduct().getProductCategory().getCategory().getBazaar().getBazaarApi();
+            plugin.getLiquidityService().recordSell(coins);
+        } catch (Exception ignored) {}
+
         return order.getRealAmount();
     }
 }

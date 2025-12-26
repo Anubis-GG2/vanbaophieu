@@ -29,55 +29,147 @@ public class ProductImpl implements Product {
     public ProductImpl(ProductCategory productCategory, ProductConfiguration config) {
         this.productCategory = productCategory;
         this.config = config;
+
         BazaarPlugin plugin = (BazaarPlugin) getBazaarApi();
         if (plugin.getPortfolioManager() != null) {
             this.candleHistory.addAll(plugin.getPortfolioManager().getDatabase().loadCandles(getId()));
         }
     }
 
-    @Override public ItemStack getItem() { return config.getItem(); }
-    @Override public void setItem(ItemStack item) { config.setItem(item); productCategory.getCategory().getBazaar().saveConfig(); }
-    @Override public ItemStack getRawIcon() { return config.getIcon().clone(); }
-    @Override public void setIcon(ItemStack icon) { config.setIcon(icon); productCategory.getCategory().getBazaar().saveConfig(); }
-    @Override public String getName() { return Utils.colorize(config.getName()); }
-    @Override public void setName(String name) { config.setName(name); productCategory.getCategory().getBazaar().saveConfig(); }
-    @Override public String getId() { return ChatColor.stripColor(getName()).replace(" ", "_").toLowerCase(); }
-    @Override public ProductCategory getProductCategory() { return productCategory; }
+    @Override
+    public ItemStack getItem() { return config.getItem(); }
+    @Override
+    public void setItem(ItemStack item) { config.setItem(item); productCategory.getCategory().getBazaar().saveConfig(); }
+    @Override
+    public ItemStack getRawIcon() { return config.getIcon().clone(); }
+    @Override
+    public void setIcon(ItemStack icon) { config.setIcon(icon); productCategory.getCategory().getBazaar().saveConfig(); }
 
-    @Override public List<String> getLore() { return config.getLore(); }
-    @Override public void setLore(List<String> lore) { config.setLore(lore); productCategory.getCategory().getBazaar().saveConfig(); }
+    @Override
+    public List<String> getLore() {
+        return List.of();
+    }
 
-    @Override public double getCurrentPrice() { return config.getPrice(); }
-    @Override public void setCurrentPrice(double price) { config.setPrice(price); }
-    @Override public double getBasePrice() { return config.getPrice(); }
-    @Override public void setBasePrice(double basePrice) { }
-    @Override public long getCirculatingSupply() { return config.getSupply(); }
-    @Override public void modifyCirculatingSupply(long delta) { config.setSupply((int)(config.getSupply() + delta)); productCategory.getCategory().getBazaar().saveConfig(); }
+    @Override
+    public void setLore(List<String> lore) {
 
-    @Override public List<Double> getPriceHistory() { return priceHistory; }
-    @Override public void addHistoryPoint(double price) { priceHistory.add(price); if (priceHistory.size() > 100) priceHistory.remove(0); }
-    @Override public List<StockCandle> getCandleHistory() { return Collections.unmodifiableList(candleHistory); }
-    @Override public void addCandle(StockCandle candle) { candleHistory.add(candle); }
+    }
 
+    @Override
+    public String getName() { return Utils.colorize(config.getName()); }
+    @Override
+    public void setName(String name) { config.setName(name); productCategory.getCategory().getBazaar().saveConfig(); }
+    @Override
+    public String getId() { return getName().replace(" ", "_").toLowerCase(); }
+    @Override
+    public ProductCategory getProductCategory() { return productCategory; }
+
+    @Override
+    public double getCurrentPrice() { return 0; }
+    @Override
+    public void setCurrentPrice(double price) { }
+    @Override
+    public double getBasePrice() { return 0; }
+    @Override
+    public void setBasePrice(double basePrice) { }
+
+    // [NEW] Supply Logic
+    @Override
+    public long getCirculatingSupply() { return config.getSupply(); }
+    @Override
+    public void modifyCirculatingSupply(long delta) {
+        config.setSupply((int) (config.getSupply() + delta));
+        productCategory.getCategory().getBazaar().saveConfig();
+    }
+
+    @Override
+    public List<Double> getPriceHistory() { return priceHistory; }
+    @Override
+    public void addHistoryPoint(double price) {
+        priceHistory.add(price);
+        if (priceHistory.size() > 100) priceHistory.remove(0);
+    }
+    @Override
+    public List<StockCandle> getCandleHistory() { return Collections.unmodifiableList(candleHistory); }
+    @Override
+    public void addCandle(StockCandle candle) {
+        candleHistory.add(candle);
+        BazaarPlugin plugin = (BazaarPlugin) getBazaarApi();
+        if (plugin.getPortfolioManager() != null) {
+            plugin.getPortfolioManager().getDatabase().saveCandle(getId(), candle);
+        }
+    }
+
+    public ProductConfiguration getConfig() { return config; }
     private BazaarAPI getBazaarApi() { return productCategory.getCategory().getBazaar().getBazaarApi(); }
 
     @Override
     public ItemStack getIcon(ContainerComponent container, int itemSlot, Player player) {
+        BazaarAPI bazaarApi = getBazaarApi();
+        BazaarPlugin plugin = (BazaarPlugin) bazaarApi;
+
+        // Clone item gốc để giữ Model
         ItemStack icon = config.getIcon().clone();
-        // Logic thêm thông tin giá như bạn đã viết
-        return icon;
+
+        double buyPrice = plugin.getMarketTicker().getCurrentPrice(this);
+        double sellPrice = plugin.getMarketTicker().getSellPrice(this);
+
+        // [UPDATE] Cập nhật thông tin hiển thị theo yêu cầu
+        ItemMeta meta = icon.getItemMeta();
+        if (meta != null) {
+            List<String> lore = meta.hasLore() ? meta.getLore() : new ArrayList<>();
+            // Xóa lore cũ nếu cần thiết, nhưng ở đây ta append thêm thông tin thị trường
+            // Tốt nhất là thêm vào cuối hoặc chèn vào vị trí placeholder nếu có
+
+            lore.add("§8§m------------------------");
+            lore.add("§7Giá mua: §a" + Utils.getTextPrice(buyPrice));
+            lore.add("§7Giá bán: §c" + Utils.getTextPrice(sellPrice) + " §7(-5% Phí)");
+            lore.add("§7Số lượng cổ phiếu còn khả dụng: §b" + Utils.formatNumber(getCirculatingSupply()));
+            lore.add("§8§m------------------------");
+
+            meta.setLore(lore);
+            icon.setItemMeta(meta);
+        }
+
+        return replaceLorePlaceholders(icon,
+                new MessagePlaceholder("buy-price", Utils.getTextPrice(buyPrice)),
+                new MessagePlaceholder("sell-price", Utils.getTextPrice(sellPrice))
+        );
+    }
+
+    private ItemStack replaceLorePlaceholders(ItemStack item, MessagePlaceholder... placeholders) {
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null || !meta.hasLore()) return item;
+
+        List<String> lore = meta.getLore();
+        List<String> newLore = new ArrayList<>();
+
+        for (String line : lore) {
+            String newLine = line;
+            for (MessagePlaceholder p : placeholders) {
+                newLine = p.replace(newLine);
+            }
+            newLore.add(newLine);
+        }
+
+        meta.setLore(newLore);
+        item.setItemMeta(meta);
+        return item;
     }
 
     @Override
     public ItemStack getConfirmationIcon(double unitPrice, int amount) {
-        return ItemBuilder.newBuilder(config.getItem()).withName(getName()).build();
+        return getBazaarApi().getMenuConfig().replaceLorePlaceholders(
+                ItemBuilder.newBuilder(config.getItem()).appendLore("%confirm-lore%").build(),
+                "confirm-lore",
+                new MessagePlaceholder("unit-price", Utils.getTextPrice(unitPrice)),
+                new MessagePlaceholder("total-price", Utils.getTextPrice(unitPrice * amount)),
+                new MessagePlaceholder("amount", String.valueOf(amount)),
+                new MessagePlaceholder("product", getName()));
     }
 
-    // Các phương thức Deprecated bắt buộc triển khai để hết lỗi "is not abstract"
-    @Deprecated @Override public CompletableFuture<Double> getLowestBuyPrice() { return CompletableFuture.completedFuture(0.0); }
-    @Deprecated @Override public CompletableFuture<Double> getHighestSellPrice() { return CompletableFuture.completedFuture(0.0); }
-    @Deprecated @Override public CompletableFuture<Pair<Double, Integer>> getBuyPriceWithOrderableAmount(int amount) { return CompletableFuture.completedFuture(new Pair<>(0.0, 0)); }
-    @Deprecated @Override public CompletableFuture<Pair<Double, Integer>> getSellPriceWithOrderableAmount(int amount) { return CompletableFuture.completedFuture(new Pair<>(0.0, 0)); }
-
-    public ProductConfiguration getConfig() { return config; }
+    @Deprecated @Override public CompletableFuture<Double> getLowestBuyPrice() { return null; }
+    @Deprecated @Override public CompletableFuture<Double> getHighestSellPrice() { return null; }
+    @Deprecated @Override public CompletableFuture<Pair<Double, Integer>> getBuyPriceWithOrderableAmount(int amount) { return null; }
+    @Deprecated @Override public CompletableFuture<Pair<Double, Integer>> getSellPriceWithOrderableAmount(int amount) { return null; }
 }

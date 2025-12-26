@@ -6,22 +6,15 @@ import me.math3w.bazaar.menu.MenuConfiguration;
 import me.zort.containr.*;
 import me.zort.containr.internal.util.ItemBuilder;
 import me.zort.containr.internal.util.Items;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.profile.PlayerProfile;
-import org.bukkit.profile.PlayerTextures;
 
 import java.lang.reflect.Field;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 public class MenuUtils {
     private MenuUtils() {
@@ -86,21 +79,11 @@ public class MenuUtils {
         }
     }
 
-    // [FIX] Tạo đầu cầu thủ an toàn cho 1.21.1
-    public static ItemStack getPlusSkull(String name) {
-        ItemStack skull = new ItemStack(Material.PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) skull.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName(Utils.colorize(name));
-            String urlString = "http://textures.minecraft.net/texture/b056683885b0376813c4ee87dfc5e534fc48fee3049ba1130da1f7df290";
-            PlayerProfile profile = Bukkit.createPlayerProfile(UUID.randomUUID());
-            PlayerTextures textures = profile.getTextures();
-            try { textures.setSkin(new URL(urlString)); } catch (MalformedURLException ignored) {}
-            profile.setTextures(textures);
-            meta.setOwnerProfile(profile);
-            skull.setItemMeta(meta);
-        }
-        return skull;
+    public static ItemStack getAddButton(String name) {
+        return ItemBuilder.newBuilder(Material.EMERALD)
+                .withName(Utils.colorize(name))
+                .appendLore(ChatColor.YELLOW + "Nhấn để tạo mới!")
+                .build();
     }
 
     public static ItemStack appendEditLore(ItemStack item, boolean shouldAppend) { return appendEditLore(item, shouldAppend, false); }

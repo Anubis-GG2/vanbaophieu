@@ -22,7 +22,6 @@ import me.zort.containr.PagedContainer;
 import me.zort.containr.internal.util.ItemBuilder;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
@@ -97,7 +96,8 @@ public class CategoryMenuConfiguration extends MenuConfiguration {
                 }
 
                 if (edit) {
-                    container.appendElement(Component.element((MenuUtils.getPlusSkull(ChatColor.GREEN + "Thêm Cổ Phiếu")))
+                    // [FIX] Sử dụng getAddButton (Emerald) thay vì getPlusSkull
+                    container.appendElement(Component.element((MenuUtils.getAddButton(ChatColor.GREEN + "Thêm Cổ Phiếu")))
                             .click(clickInfo -> {
                                 BazaarConfig bazaarConfig = ((BazaarPlugin) bazaar.getBazaarApi()).getBazaarConfig();
                                 ProductConfiguration productConfiguration = bazaarConfig.getProductConfiguration(

@@ -15,6 +15,11 @@ public interface Product extends MenuInfo {
     ItemStack getIcon(ContainerComponent container, int itemSlot, Player player);
     ItemStack getRawIcon();
     void setIcon(ItemStack icon);
+
+    // [THÊM]
+    List<String> getLore();
+    void setLore(List<String> lore);
+
     ItemStack getConfirmationIcon(double unitPrice, int amount);
     String getName();
     void setName(String name);
@@ -29,9 +34,7 @@ public interface Product extends MenuInfo {
     List<Double> getPriceHistory();
     void addHistoryPoint(double price);
 
-
     List<StockCandle> getCandleHistory();
-
     void addCandle(StockCandle candle);
 
     @Deprecated

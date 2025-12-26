@@ -51,40 +51,52 @@ public class BazaarConfig extends CustomConfig {
     // [Dữ liệu Categories cũ - Giữ nguyên]
     private List<ProductCategoryConfiguration> getTraiTreNhaHoLacCategories() {
         return Collections.singletonList(getProductCategoryConfiguration(Material.PAPER, "Vật Phẩm", new ProductConfiguration[]{
-                getProductConfiguration(Material.PAPER, "Sushi", 100.0), getProductConfiguration(Material.PAPER, "Sushi Thôn Hải", 100.0),
-                getProductConfiguration(Material.PAPER, "Hồng Sắc Bảo Thạch", 100.0), getProductConfiguration(Material.PAPER, "Lạc Hoàng Tệ", 100.0),
-                getProductConfiguration(Material.PAPER, "Thần Lôi Tinh Tủy", 100.0), getProductConfiguration(Material.PAPER, "Ám Chu Tri", 100.0),
-                getProductConfiguration(Material.PAPER, "Chu Tri Độc Nang", 100.0)
+                getProductConfiguration(Material.PAPER, "Sushi", 100.0),
+                getProductConfiguration(Material.PAPER, "Sushi Thôn Hải", 100.0),
+                getProductConfiguration(Material.PAPER, "Hồng Sắc Bảo Thạch", 100.0),
+                getProductConfiguration(Material.PAPER, "Lạc Hoàng Tệ", 100.0),
+                getProductConfiguration(Material.PAPER, "Thần Lôi Tinh Tủy", 100.0),
+                getProductConfiguration(Material.PAPER, "Ám Chu Tri", 100.0),
+                getProductConfiguration(Material.PAPER, "Tri Chu Độc Nang", 100.0)
         }, ChatColor.YELLOW));
     }
 
     private List<ProductCategoryConfiguration> getNhaSachHaoTamCategories() {
         return Collections.singletonList(getProductCategoryConfiguration(Material.PAPER, "Vật Phẩm", new ProductConfiguration[]{
-                getProductConfiguration(Material.PAPER, "Minh Lam Tử Sa", 100.0), getProductConfiguration(Material.PAPER, "Linh Quy Hạch", 100.0),
-                getProductConfiguration(Material.PAPER, "Nội Công", 100.0), getProductConfiguration(Material.PAPER, "Vạn Niên Mộc Đằng", 100.0),
-                getProductConfiguration(Material.PAPER, "Cổ Hỏa Hồn Thạch", 100.0), getProductConfiguration(Material.PAPER, "Vạn Niên Huyền Thiết", 100.0),
-                getProductConfiguration(Material.PAPER, "Thần Tinh Kim Thiết", 100.0), getProductConfiguration(Material.PAPER, "Đại Luyện Khí Lực Đan", 100.0),
-                getProductConfiguration(Material.PAPER, "Dẫn Linh Đan", 100.0), getProductConfiguration(Material.PAPER, "Linh Khí Thạch", 100.0)
+                getProductConfiguration(Material.PAPER, "Minh Lam Tử Sa", 100.0),
+                getProductConfiguration(Material.PAPER, "Linh Quy Sinh Hạch", 100.0),
+                getProductConfiguration(Material.PAPER, "Nội Công", 100.0),
+                getProductConfiguration(Material.PAPER, "Vạn Niên Mộc Đằng", 100.0),
+                getProductConfiguration(Material.PAPER, "Cổ Hỏa Hồn Thạch", 100.0),
+                getProductConfiguration(Material.PAPER, "Vạn Niên Huyền Thiết", 100.0),
+                getProductConfiguration(Material.PAPER, "Thần Tinh Kim ", 100.0),
+                getProductConfiguration(Material.PAPER, "Đại Luyện Khí Lực Đan", 100.0),
+                getProductConfiguration(Material.PAPER, "Dẫn Linh Đan", 100.0),
+                getProductConfiguration(Material.PAPER, "Linh Khí Thạch", 100.0)
         }, ChatColor.AQUA));
     }
 
     private List<ProductCategoryConfiguration> getNoiThanVeGheChoiCategories() {
         return Collections.singletonList(getProductCategoryConfiguration(Material.PAPER, "Vật Phẩm", new ProductConfiguration[]{
-                getProductConfiguration(Material.PAPER, "Hư Không Tàn Phiến", 100.0), getProductConfiguration(Material.PAPER, "Hư Không Thạch", 100.0),
+                getProductConfiguration(Material.PAPER, "Hư Không Tàn Phiến", 100.0),
+                getProductConfiguration(Material.PAPER, "Hư Không Thạch", 100.0),
                 getProductConfiguration(Material.PAPER, "Hư Không Tâm Hoả", 100.0)
         }, ChatColor.RED));
     }
 
     private List<ProductCategoryConfiguration> getVungDatTamThapLucCategories() {
         return Collections.singletonList(getProductCategoryConfiguration(Material.PAPER, "Vật Phẩm", new ProductConfiguration[]{
-                getProductConfiguration(Material.PAPER, "Vạn Binh Thạch", 100.0), getProductConfiguration(Material.PAPER, "Cửu Thiên Kiếm Châu", 100.0),
-                getProductConfiguration(Material.PAPER, "Cửu Thiên Kiếm Tinh", 100.0), getProductConfiguration(Material.PAPER, "Thất Dục Cô Thạch", 100.0)
+                getProductConfiguration(Material.PAPER, "Vạn Binh Thạch", 100.0),
+                getProductConfiguration(Material.PAPER, "Cửu Thiên Kiếm Châu", 100.0),
+                getProductConfiguration(Material.PAPER, "Cửu Thiên Kiếm Tinh", 100.0),
+                getProductConfiguration(Material.PAPER, "Thất Dục Cô Thạch", 100.0)
         }, ChatColor.GOLD));
     }
 
     private List<ProductCategoryConfiguration> getTheGioiHaDuongHuyetCategories() {
         return Collections.singletonList(getProductCategoryConfiguration(Material.PAPER, "Vật Phẩm", new ProductConfiguration[]{
-                getProductConfiguration(Material.PAPER, "Hàn Băng Tích Thuỷ", 100.0), getProductConfiguration(Material.PAPER, "Sushi Thôn Hải Băng Kình", 100.0),
+                getProductConfiguration(Material.PAPER, "Hàn Băng Tích Thuỷ", 100.0),
+                getProductConfiguration(Material.PAPER, "Sushi Thôn Hải Băng Kình", 100.0),
                 getProductConfiguration(Material.PAPER, "Thanh Vân Kiếm Thiết", 100.0)
         }, ChatColor.LIGHT_PURPLE));
     }
